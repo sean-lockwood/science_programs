@@ -118,10 +118,10 @@ def select_extraction_box_size(fig1, extrlocy, c):
 
 def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c):
     cenwave = pyfits.getval(filename, 'cenwave', 0)
-    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_%i.fits' %(int(extrlocy), cenwave)))):
-        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_%i.fits' %(int(extrlocy), cenwave))))
+    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_%i_x1d.fits' %(int(extrlocy), cenwave)))):
+        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_%i_x1d.fits' %(int(extrlocy), cenwave))))
         
-    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i_%i.fits' %(int(extrlocy), cenwave)), \
+    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i_%i_x1d.fits' %(int(extrlocy), cenwave)), \
                                        a2center = extrlocy, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
                                        bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2)
  
