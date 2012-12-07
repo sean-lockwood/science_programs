@@ -16,16 +16,15 @@ def collapse_spectrum(img):
     collapsed_img = np.sum(img, axis = 1)/1024
     return collapsed_img
 
-def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename):
+def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwave):
     background_collapsed = np.empty((0,))
     background_pix = np.empty((0,))
     finished_flag = 'n'
-    b_filename = filename.split('/')[-1][0:8]
-    if os.path.exists(os.path.join(os.getcwd(), '%s_background_regions.txt' %(b_filename))):
+    if os.path.exists(filename.replace('.fits', '_c%i_background_regions.txt' %(cenwave))):
         keep_file_flag = raw_input('Background file already exists: Overwrite file (w) or Append to file (a)')
     else:
         keep_file_flag = 'w'
-    ofile = open('%s_background_regions.txt' %(b_filename), keep_file_flag)
+    ofile = open(filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), keep_file_flag)
     while finished_flag != 'y':
         print 'Select background points for cross-dispersion background subtraction'
         temp_region = fig1.ginput(n = 2, timeout = -1)
@@ -119,10 +118,10 @@ def select_extraction_box_size(fig1, extrlocy, c):
 
 def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c):
     cenwave = pyfits.getval(filename, 'cenwave', 0)
-    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', 'loc%i_%i.fits' %(int(extrlocy), cenwave)))):
-        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', 'loc%i_%i.fits' %(int(extrlocy), cenwave))))
+    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_%i.fits' %(int(extrlocy), cenwave)))):
+        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_%i.fits' %(int(extrlocy), cenwave))))
         
-    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', 'loc%i_%i.fits' %(int(extrlocy), cenwave)), \
+    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i_%i.fits' %(int(extrlocy), cenwave)), \
                                        a2center = extrlocy, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
                                        bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2)
  
@@ -137,29 +136,28 @@ if __name__ == "__main__":
         ext = int(sys.argv[2])
     except:
         ext = 1
-
-
     find_background_flag = raw_input('Select the background regions? y, (n)')
     fig1 = pyplot.figure(1)
     ax1 = fig1.add_subplot(1, 1, 1)
     ax1.set_xlabel('Pixel Number')
     ax1.set_ylabel('Total Counts Summed in the Dispersion Direction')
     img = pyfits.getdata(filename, ext)
+    cenwave = pyfits.getval(filename, 'cenwave', 0)
+    print type(cenwave)
     collapsed_img = collapse_spectrum(img)
     pix_num = range(len(collapsed_img))
     ax1.plot(pix_num, collapsed_img)
     if find_background_flag == 'y':
-        
         disp_2d = raw_input('Would you like to display the 2D image? y, (n)')
         if disp_2d == 'y':
             fig2 = pyplot.figure(2)
             ax2 = fig2.add_subplot(1,1,1)
             ax2.imshow(np.rot90(np.log10(img)), interpolation = 'nearest', origin = 'lower')
         raw_input('Zoom in on desired spectrum location. Press Enter when finished')
-        fig1, ax1, background_pix, background_collapsed = get_background_locations(fig1, ax1, pix_num, collapsed_img, filename)
+        fig1, ax1, background_pix, background_collapsed = get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwave)
+
     else:
-        b_filename = filename.split('/')[-1][0:8]
-        coords = np.genfromtxt('%s_background_regions.txt' %(b_filename))
+        coords = np.genfromtxt(filename.replace('.fits','_c%i_background_regions.txt'%(cenwave)))
         background_collapsed = np.empty((0,))
         background_pix = np.empty((0,))
         for region in coords:
