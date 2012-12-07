@@ -34,7 +34,7 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename):
         pyplot.draw()
         keep_flag = raw_input('Keep points? (y), n ')
         if keep_flag != 'n':
-            ofile.write('%i, %i \n' %(int(math.floor(temp_region[0][0])),int(math.ceil(temp_region[1][0]))))
+            ofile.write('%i\t %i \n' %(int(math.floor(temp_region[0][0])),int(math.ceil(temp_region[1][0]))))
             background_collapsed = np.append(background_collapsed, collapsed_img[int(math.floor(temp_region[0][0])):int(math.ceil(temp_region[1][0]))])
             background_pix = np.append(background_pix, pix_num[int(math.floor(temp_region[0][0])):int(math.ceil(temp_region[1][0]))])
         else:
@@ -49,7 +49,7 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename):
     return fig1, ax1, background_pix, background_collapsed
 
 def fit_background(ax1, background_pix, background_collapsed, pix_num):
-    deg = 1
+    deg = 5
     change_deg_flag = 'y'
     leg_text = ['%i' %(deg)]
     leg_lines = []
@@ -137,22 +137,38 @@ if __name__ == "__main__":
         ext = int(sys.argv[2])
     except:
         ext = 1
-    img = pyfits.getdata(filename, ext)
-    collapsed_img = collapse_spectrum(img)
+
+
+    find_background_flag = raw_input('Select the background regions? y, (n)')
     fig1 = pyplot.figure(1)
     ax1 = fig1.add_subplot(1, 1, 1)
-    pix_num = range(len(collapsed_img))
-    ax1.plot(pix_num, collapsed_img)
     ax1.set_xlabel('Pixel Number')
     ax1.set_ylabel('Total Counts Summed in the Dispersion Direction')
-    disp_2d = raw_input('Would you like to display the 2D image? y, (n)')
-    if disp_2d == 'y':
-        fig2 = pyplot.figure(2)
-        ax2 = fig2.add_subplot(1,1,1)
-        ax2.imshow(np.rot90(np.log10(img)), interpolation = 'nearest', origin = 'lower')
-    raw_input('Zoom in on desired spectrum location. Press Enter when finished')
-    fig1, ax1, background_pix, background_collapsed = get_background_locations(fig1, ax1, pix_num, collapsed_img, filename)
-    
+    img = pyfits.getdata(filename, ext)
+    collapsed_img = collapse_spectrum(img)
+    pix_num = range(len(collapsed_img))
+    ax1.plot(pix_num, collapsed_img)
+    if find_background_flag == 'y':
+        
+        disp_2d = raw_input('Would you like to display the 2D image? y, (n)')
+        if disp_2d == 'y':
+            fig2 = pyplot.figure(2)
+            ax2 = fig2.add_subplot(1,1,1)
+            ax2.imshow(np.rot90(np.log10(img)), interpolation = 'nearest', origin = 'lower')
+        raw_input('Zoom in on desired spectrum location. Press Enter when finished')
+        fig1, ax1, background_pix, background_collapsed = get_background_locations(fig1, ax1, pix_num, collapsed_img, filename)
+    else:
+        b_filename = filename.split('/')[-1][0:8]
+        coords = np.genfromtxt('%s_background_regions.txt' %(b_filename))
+        background_collapsed = np.empty((0,))
+        background_pix = np.empty((0,))
+        for region in coords:
+            background_pix = np.append(background_pix, pix_num[int(region[0]):int(region[1])])
+            background_collapsed = np.append(background_collapsed, collapsed_img[int(region[0]):int(region[1])])
+        sort_indx = np.argsort(background_pix)
+        background_pix = background_pix[sort_indx]
+        background_collapsed = background_collapsed[sort_indx]
+
     xlims = ax1.get_xlim()
     ylims = ax1.get_ylim()
     ax1, fit = fit_background(ax1, background_pix, background_collapsed, pix_num)
