@@ -13,10 +13,12 @@ from iraf import stsdas,hst_calib,stis,x1d
 
 
 def collapse_spectrum(img):
+    '''Collapse 2D spectrum in the dispersion direction to create a cross dispersion profile'''
     collapsed_img = np.sum(img, axis = 1)/1024
     return collapsed_img
 
 def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwave):
+    '''Interactively select the regions to be fit as background '''
     background_collapsed = np.empty((0,))
     background_pix = np.empty((0,))
     finished_flag = 'n'
@@ -48,6 +50,7 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
     return fig1, ax1, background_pix, background_collapsed
 
 def fit_background(ax1, background_pix, background_collapsed, pix_num):
+    '''Interactively fit background regions with a polynomial '''
     deg = 5
     change_deg_flag = 'y'
     leg_text = ['%i' %(deg)]
@@ -76,11 +79,13 @@ def fit_background(ax1, background_pix, background_collapsed, pix_num):
     return ax1, fit
 
 def subtract_2D_cross_disp_background(img, fit):
+    '''Create a 2D image from the 1D fit to the background in the cross dispersion direction and subtract it from the image '''
     two_D_background = np.rot90(np.rot90(np.rot90(np.tile(fit, (1024, 1)))))
     return img - two_D_background
 
 
 def write_temp_subtracted_file(subtracted_img, filename):
+    '''Write the subtracted image to a temporary file for calstis to extract from. This file is erased at the end of execution '''
     shutil.copyfile(filename, filename.replace('.fits', 'sub.fits'))
     ofile = pyfits.open(filename.replace('.fits', 'sub.fits'), mode = 'update')
     ofile[1].data = subtracted_img
@@ -88,6 +93,7 @@ def write_temp_subtracted_file(subtracted_img, filename):
     ofile.close()
 
 def select_extraction_location(fig1, c):
+    '''Interactvely select the center of an extraction or background region '''
     raw_input('Zoom in on spectrum, hit Enter when finished')
     print 'Select spectrum location'
     keep_flag = 'n'
@@ -103,6 +109,7 @@ def select_extraction_location(fig1, c):
     
 
 def select_extraction_box_size(fig1, extrlocy, c):
+    '''Interactively select the box size of an extraction or background region '''
     print 'Select extraction box'
     keep_flag = 'n'
     while keep_flag == 'n':
@@ -117,46 +124,60 @@ def select_extraction_box_size(fig1, extrlocy, c):
     return half_box*2
 
 def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c):
+    '''Extract the spectrum using the calstis task x1d '''
     cenwave = pyfits.getval(filename, 'cenwave', 0)
-    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_%i_x1d.fits' %(int(extrlocy), cenwave)))):
-        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_%i_x1d.fits' %(int(extrlocy), cenwave))))
+    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy), cenwave)))):
+        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy), cenwave))))
         
-    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i_%i_x1d.fits' %(int(extrlocy), cenwave)), \
+    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy), cenwave)), \
                                        a2center = extrlocy, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
                                        bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2)
  
 
 if __name__ == "__main__":
+
+    #Define colors for extracting more than one spectrum
     colors = ['r', 'g', 'c', 'k', 'm']
 
-    pyplot.ion()
-    os.environ['oref'] = '/Users/bostroem/science/oref/'
+    pyplot.ion()  #turn plotting on 
+    os.environ['oref'] = '/Users/bostroem/science/oref/' #set oref environment variable to point to reference file location
+
+    #read in command line arguments
     filename = sys.argv[1]
     try:
         ext = int(sys.argv[2])
     except:
         ext = 1
-    find_background_flag = raw_input('Select the background regions? y, (n)')
+
+    
+    find_background_flag = raw_input('Select the background regions? y, (n)') #read background from file or interactively define?
+
+    #set up figure and plot cross-dispersion profile
     fig1 = pyplot.figure(1)
     ax1 = fig1.add_subplot(1, 1, 1)
     ax1.set_xlabel('Pixel Number')
     ax1.set_ylabel('Total Counts Summed in the Dispersion Direction')
+    #pdb.set_trace()
     img = pyfits.getdata(filename, ext)
     cenwave = pyfits.getval(filename, 'cenwave', 0)
     print type(cenwave)
     collapsed_img = collapse_spectrum(img)
     pix_num = range(len(collapsed_img))
     ax1.plot(pix_num, collapsed_img)
-    if find_background_flag == 'y':
+    
+    if find_background_flag == 'y':  #interactvely define background
+        #Display 2D image
         disp_2d = raw_input('Would you like to display the 2D image? y, (n)')
         if disp_2d == 'y':
             fig2 = pyplot.figure(2)
             ax2 = fig2.add_subplot(1,1,1)
             ax2.imshow(np.rot90(np.log10(img)), interpolation = 'nearest', origin = 'lower')
         raw_input('Zoom in on desired spectrum location. Press Enter when finished')
+        
+        #Define background regions in cross dispersion profile
         fig1, ax1, background_pix, background_collapsed = get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwave)
 
-    else:
+    else:  #read background regions from file
         coords = np.genfromtxt(filename.replace('.fits','_c%i_background_regions.txt'%(cenwave)))
         background_collapsed = np.empty((0,))
         background_pix = np.empty((0,))
@@ -167,18 +188,24 @@ if __name__ == "__main__":
         background_pix = background_pix[sort_indx]
         background_collapsed = background_collapsed[sort_indx]
 
+    #Get limits now to scale plot when plotting the background subtracted data (things can go crazy at the edges)
     xlims = ax1.get_xlim()
     ylims = ax1.get_ylim()
+    
+    #Fit a polynomial to the background
     ax1, fit = fit_background(ax1, background_pix, background_collapsed, pix_num)
+    #Subtract the background (in the cross dispersion direction) from the image
     subtracted_img = subtract_2D_cross_disp_background(img, fit)
+    #Write a temporary file of the subtracted image
     write_temp_subtracted_file(subtracted_img, filename)
+    #collapse the subtracted image in the cross-dispersion direction
     sub_collapsed_img = collapse_spectrum(subtracted_img)
     ax1.cla()
-    ax1.plot(pix_num, sub_collapsed_img)
-    another_spectrum_flag = 'y'
+    ax1.plot(pix_num, sub_collapsed_img) #Plot the cross dispersion profile of the subtracted image
+    another_spectrum_flag = 'y'  #this flag denotes wanting to extract more than one spectrum from a subtracted image
     i = 0
-    while another_spectrum_flag != 'n':
-        c = colors[i%len(colors)]
+    while another_spectrum_flag != 'n':  #for each spectrum
+        c = colors[i%len(colors)] #Set color for spectrum extraction regions
         ax1.set_xlim(xlims[0], xlims[1])
         ax1.set_ylim(ylims[0], ylims[1])
         pyplot.draw()
