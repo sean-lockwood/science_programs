@@ -16,7 +16,6 @@ from iraf import stsdas,hst_calib,stis,x1d
 
 def collapse_spectrum(img, num_cols):
     '''Collapse 2D spectrum in the dispersion direction to create a cross dispersion profile'''
-    pdb.set_trace()
     collapsed_img = np.sum(img[:, int(512 - num_cols/2.0):int(512 + num_cols/2.0)], axis = 1)/num_cols
     return collapsed_img
 
