@@ -6,15 +6,18 @@ from matplotlib import pyplot
 import pdb
 import os
 import shutil
+from optparse import OptionParser
+
 
 import pyraf
 from pyraf import iraf
 from iraf import stsdas,hst_calib,stis,x1d
 
 
-def collapse_spectrum(img):
+def collapse_spectrum(img, num_cols):
     '''Collapse 2D spectrum in the dispersion direction to create a cross dispersion profile'''
-    collapsed_img = np.sum(img, axis = 1)/1024
+    pdb.set_trace()
+    collapsed_img = np.sum(img[:, int(512 - num_cols/2.0):int(512 + num_cols/2.0)], axis = 1)/num_cols
     return collapsed_img
 
 def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwave, first_time = True):
@@ -165,15 +168,14 @@ def select_extraction_box_size(fig1, extrlocy, c):
             pyplot.draw()
     return half_box*2
 
-def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c):
+def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, backcorr_option):
     '''Extract the spectrum using the calstis task x1d '''
-    cenwave = pyfits.getval(filename, 'cenwave', 0)
-    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy), cenwave)))):
-        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy), cenwave))))
+    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy))))):
+        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy)))))
         
-    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy), cenwave)), \
+    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy))), \
                                        a2center = extrlocy, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
-                                       bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2)
+                                       bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option)
  
 
 if __name__ == "__main__":
@@ -182,8 +184,14 @@ if __name__ == "__main__":
     colors = ['r', 'g', 'c', 'k', 'm']
 
     pyplot.ion()  #turn plotting on 
-    os.environ['oref'] = '/Users/bostroem/science/oref/' #set oref environment variable to point to reference file location
+    os.environ['oref'] = '/grp/hst/cdbs/oref/' #set oref environment variable to point to reference file location
 
+    parser = OptionParser()
+    parser.add_option('--backcorr', dest = 'backcorr', help = 'Enter perform or omit (default) to perform or omit the background subtraction in CalSTIS x1d', default = 'omit')
+    parser.add_option('--ncol', dest = 'num_cols', type = 'float', help = 'Number of columns summed when examining the cross-dispersion profile', default = 10)
+    
+    (options, args) = parser.parse_args()
+    
     #read in command line arguments
     filename = sys.argv[1]
     try:
@@ -203,7 +211,7 @@ if __name__ == "__main__":
     img = pyfits.getdata(filename, ext)
     cenwave = pyfits.getval(filename, 'cenwave', 0)
     print type(cenwave)
-    collapsed_img = collapse_spectrum(img)
+    collapsed_img = collapse_spectrum(img, options.num_cols)
     pix_num = range(len(collapsed_img))
     ax1.plot(pix_num, collapsed_img)
     
@@ -245,7 +253,7 @@ if __name__ == "__main__":
     #Write a temporary file of the subtracted image
     write_temp_subtracted_file(subtracted_img, filename)
     #collapse the subtracted image in the cross-dispersion direction
-    sub_collapsed_img = collapse_spectrum(subtracted_img)
+    sub_collapsed_img = collapse_spectrum(subtracted_img, options.num_cols)
     ax1.cla()
     ax1.plot(pix_num, sub_collapsed_img) #Plot the cross dispersion profile of the subtracted image
     another_spectrum_flag = 'y'  #this flag denotes wanting to extract more than one spectrum from a subtracted image
@@ -267,7 +275,7 @@ if __name__ == "__main__":
         background_loc2 = select_extraction_location(fig1, c)
         print 'Identify right background box'
         background_size2 = select_extraction_box_size(fig1, background_loc2, c)
-        extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c)
+        extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, options.backcorr)
         another_spectrum_flag = raw_input('Extract another spectrum?')
         i = i + 1
     os.remove(filename.replace('.fits', 'sub.fits'))
@@ -275,5 +283,4 @@ if __name__ == "__main__":
 
 
 
-    raw_input('Enter')
 
