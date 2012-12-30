@@ -6,27 +6,70 @@ from matplotlib import pyplot
 import pdb
 import os
 import shutil
+from optparse import OptionParser
+
 
 import pyraf
 from pyraf import iraf
 from iraf import stsdas,hst_calib,stis,x1d
 
 
-def collapse_spectrum(img):
+def collapse_spectrum(img, num_cols):
     '''Collapse 2D spectrum in the dispersion direction to create a cross dispersion profile'''
-    collapsed_img = np.sum(img, axis = 1)/1024
+    collapsed_img = np.sum(img[:, int(512 - num_cols/2.0):int(512 + num_cols/2.0)], axis = 1)/num_cols
     return collapsed_img
 
-def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwave):
+def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwave, first_time = True):
     '''Interactively select the regions to be fit as background '''
+    finished_flag = 'n'
     background_collapsed = np.empty((0,))
     background_pix = np.empty((0,))
-    finished_flag = 'n'
-    if os.path.exists(filename.replace('.fits', '_c%i_background_regions.txt' %(cenwave))):
-        keep_file_flag = raw_input('Background file already exists: Overwrite file (w) or Append to file (a)')
-    else:
-        keep_file_flag = 'w'
-    ofile = open(filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), keep_file_flag)
+    #no background regions defined
+    if first_time is True:
+        if os.path.exists(filename.replace('.fits', '_c%i_background_regions.txt' %(cenwave))):
+            keep_file_flag = raw_input('Background file already exists: Overwrite file (w) or Append to file (a)')
+        else:
+            keep_file_flag = 'w'
+        ofile = open(filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), keep_file_flag)
+    #Background regions have been defined - adding or removing some of them
+    if first_time is False:
+        remove_flag = 'y'
+        #Get initial indx values from background file
+        start_indx, end_indx  = np.genfromtxt(filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), unpack = True)
+        start_indx = np.int_(start_indx)
+        end_indx = np.int_(end_indx)
+        #REMOVE BACKGROUND REGIONS
+        while remove_flag != 'n':
+            l2 = [] #list for line objects (this is so we can make them invisible later)
+            l3 = [] #list of text objects (this is so we can make them invisible later)
+            #Draw background regions as currently defined
+            for i, sindx, eindx in zip(range(len(start_indx)), start_indx, end_indx):
+                temp_pix = pix_num[sindx:eindx+1]
+                temp_bkg = collapsed_img[sindx:eindx+1]
+                l2.append(pyplot.plot([pix_num[sindx], pix_num[eindx+1]], [collapsed_img[sindx], collapsed_img[eindx+1]], 'mo--', markersize = 5))
+                l3.append(pyplot.text(np.mean(temp_pix), np.max(temp_bkg), str(i)))
+            remove_flag = raw_input('Would you like to remove any background regions? (y), n ')
+            if remove_flag == 'n':
+                break
+            try:
+                remove_indx = int(raw_input('Enter the number of the region you wish to remove: '))
+            except ValueError:
+                print 'You must enter something that can be converted into an integer'
+                remove_indx = int(raw_input('Enter the number of the region you wish to remove: '))
+            #remove indx from start_indx and end_indx
+            start_indx = np.append(start_indx[0:remove_indx], start_indx[remove_indx+1:])
+            end_indx = np.append(end_indx[0:remove_indx], end_indx[remove_indx+1:])
+            #delete lines from plot
+            for iline, itxt in zip(l2, l3):
+                iline[0].set_visible(False)
+                itxt.set_visible(False)
+        ofile = open(filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), 'w')
+        for sindx, eindx in zip(start_indx, end_indx):
+            background_collapsed = np.append(background_collapsed, collapsed_img[sindx:eindx+1])
+            background_pix = np.append(background_pix, pix_num[sindx:eindx+1])
+            ofile.write('%i\t %i \n' %(int(sindx),int(eindx)))
+        finished_flag = raw_input('Finished entering points? (n), y ')
+    #ADD BACKGROUND REGIONS
     while finished_flag != 'y':
         print 'Select background points for cross-dispersion background subtraction'
         temp_region = fig1.ginput(n = 2, timeout = -1)
@@ -36,8 +79,8 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
         keep_flag = raw_input('Keep points? (y), n ')
         if keep_flag != 'n':
             ofile.write('%i\t %i \n' %(int(math.floor(temp_region[0][0])),int(math.ceil(temp_region[1][0]))))
-            background_collapsed = np.append(background_collapsed, collapsed_img[int(math.floor(temp_region[0][0])):int(math.ceil(temp_region[1][0]))])
-            background_pix = np.append(background_pix, pix_num[int(math.floor(temp_region[0][0])):int(math.ceil(temp_region[1][0]))])
+            background_collapsed = np.append(background_collapsed, collapsed_img[int(math.floor(temp_region[0][0])):int(math.ceil(temp_region[1][0]))+1])
+            background_pix = np.append(background_pix, pix_num[int(math.floor(temp_region[0][0])):int(math.ceil(temp_region[1][0]))+1])
         else:
             l1[0].set_visible(False)
             pyplot.draw()
@@ -49,7 +92,7 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
 
     return fig1, ax1, background_pix, background_collapsed
 
-def fit_background(ax1, background_pix, background_collapsed, pix_num):
+def fit_background(fig1, ax1, background_pix, background_collapsed, pix_num):
     '''Interactively fit background regions with a polynomial '''
     deg = 5
     change_deg_flag = 'y'
@@ -62,13 +105,10 @@ def fit_background(ax1, background_pix, background_collapsed, pix_num):
         leg_lines.append(l1[0])
         pyplot.legend(leg_lines, leg_text, loc = 'best')
         pyplot.draw()
-        change_deg_flag = raw_input('Replot with a different degree polynomial? (y), n ')
-        if change_deg_flag != 'n':
-            
+        change_deg_flag = raw_input('Replot with a different degree polynomial? (y), n -or- redefine background, r ')
+        if (change_deg_flag != 'n') and (change_deg_flag != 'r'):
             l1[0].set_linestyle('--')
-            #l1[0].set_visible(False)
             pyplot.draw()
-
             try:
                 deg = int(raw_input('Enter degree of polynomial you wish to fit: '))
             except ValueError:
@@ -76,6 +116,10 @@ def fit_background(ax1, background_pix, background_collapsed, pix_num):
                 deg = int(raw_input('Enter degree of polynomial you wish to fit: '))
 
             leg_text.append('%i' %(deg))
+        elif change_deg_flag == 'r':
+            for l in leg_lines:
+                l.set_visible(False)
+            return None, None
     return ax1, fit
 
 def subtract_2D_cross_disp_background(img, fit):
@@ -123,15 +167,14 @@ def select_extraction_box_size(fig1, extrlocy, c):
             pyplot.draw()
     return half_box*2
 
-def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c):
+def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, backcorr_option):
     '''Extract the spectrum using the calstis task x1d '''
-    cenwave = pyfits.getval(filename, 'cenwave', 0)
-    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy), cenwave)))):
-        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy), cenwave))))
+    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy))))):
+        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy)))))
         
-    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy), cenwave)), \
+    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy))), \
                                        a2center = extrlocy, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
-                                       bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2)
+                                       bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option)
  
 
 if __name__ == "__main__":
@@ -140,8 +183,14 @@ if __name__ == "__main__":
     colors = ['r', 'g', 'c', 'k', 'm']
 
     pyplot.ion()  #turn plotting on 
-    os.environ['oref'] = '/Users/bostroem/science/oref/' #set oref environment variable to point to reference file location
+    os.environ['oref'] = '/grp/hst/cdbs/oref/' #set oref environment variable to point to reference file location
 
+    parser = OptionParser()
+    parser.add_option('--backcorr', dest = 'backcorr', help = 'Enter perform or omit (default) to perform or omit the background subtraction in CalSTIS x1d', default = 'omit')
+    parser.add_option('--ncol', dest = 'num_cols', type = 'float', help = 'Number of columns summed when examining the cross-dispersion profile', default = 50)
+    
+    (options, args) = parser.parse_args()
+    
     #read in command line arguments
     filename = sys.argv[1]
     try:
@@ -150,7 +199,7 @@ if __name__ == "__main__":
         ext = 1
 
     
-    find_background_flag = raw_input('Select the background regions? y, (n)') #read background from file or interactively define?
+    find_background_flag = raw_input('Select the background regions? y, (n) ') #read background from file or interactively define?
 
     #set up figure and plot cross-dispersion profile
     fig1 = pyplot.figure(1)
@@ -161,13 +210,13 @@ if __name__ == "__main__":
     img = pyfits.getdata(filename, ext)
     cenwave = pyfits.getval(filename, 'cenwave', 0)
     print type(cenwave)
-    collapsed_img = collapse_spectrum(img)
+    collapsed_img = collapse_spectrum(img, options.num_cols)
     pix_num = range(len(collapsed_img))
     ax1.plot(pix_num, collapsed_img)
     
     if find_background_flag == 'y':  #interactvely define background
         #Display 2D image
-        disp_2d = raw_input('Would you like to display the 2D image? y, (n)')
+        disp_2d = raw_input('Would you like to display the 2D image? y, (n) ')
         if disp_2d == 'y':
             fig2 = pyplot.figure(2)
             ax2 = fig2.add_subplot(1,1,1)
@@ -193,13 +242,17 @@ if __name__ == "__main__":
     ylims = ax1.get_ylim()
     
     #Fit a polynomial to the background
-    ax1, fit = fit_background(ax1, background_pix, background_collapsed, pix_num)
+    ax1_temp, fit = fit_background(fig1, ax1, background_pix, background_collapsed, pix_num)
+    while ax1_temp is None:
+        fig1, ax1, background_pix, background_collapsed = get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwave, first_time = False)
+        ax1_temp, fit = fit_background(fig1, ax1, background_pix, background_collapsed, pix_num)
+    ax1 = ax1_temp
     #Subtract the background (in the cross dispersion direction) from the image
     subtracted_img = subtract_2D_cross_disp_background(img, fit)
     #Write a temporary file of the subtracted image
     write_temp_subtracted_file(subtracted_img, filename)
     #collapse the subtracted image in the cross-dispersion direction
-    sub_collapsed_img = collapse_spectrum(subtracted_img)
+    sub_collapsed_img = collapse_spectrum(subtracted_img, options.num_cols)
     ax1.cla()
     ax1.plot(pix_num, sub_collapsed_img) #Plot the cross dispersion profile of the subtracted image
     another_spectrum_flag = 'y'  #this flag denotes wanting to extract more than one spectrum from a subtracted image
@@ -221,7 +274,7 @@ if __name__ == "__main__":
         background_loc2 = select_extraction_location(fig1, c)
         print 'Identify right background box'
         background_size2 = select_extraction_box_size(fig1, background_loc2, c)
-        extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c)
+        extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, options.backcorr)
         another_spectrum_flag = raw_input('Extract another spectrum?')
         i = i + 1
     os.remove(filename.replace('.fits', 'sub.fits'))
@@ -229,5 +282,4 @@ if __name__ == "__main__":
 
 
 
-    raw_input('Enter')
 
