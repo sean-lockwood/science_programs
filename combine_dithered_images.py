@@ -170,3 +170,10 @@ if __name__ == "__main__":
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec)
 
+    #idir = '/Users/bostroem/science/12465_otfr20121109/ccd/'
+    #os.chdir(idir)
+    #flist = glob.glob('ob???????_flt.fits')+glob.glob('ob???????_flt.fits')
+    #dec_dict = make_declination_dict(flist)
+    #for targ_dec in dec_dict.keys():
+    #    combine_dithered_images(dec_dict, targ_dec)
+
