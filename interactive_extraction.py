@@ -182,7 +182,32 @@ def add_background_into_x1d(filename, fit, extrlocy):
     ofile[1].data['background'][:] = ofile[1].data['background'][:] + fit[int(round(ofile[1].data['a2center'])) - 1] #a2center is 1 indexed
     ofile.flush()
     ofile.close()
- 
+
+def confirm_extraction_location(filename, img, extrlocy):
+    fig3 = pyplot.figure(3)
+    ax3 = fig3.add_subplot(1, 1, 1)
+    ax3.imshow(np.log10(img), interpolation = 'nearest', origin = 'lower', cmap = 'gray')
+    tbdata =  pyfits.getdata(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i.fits' %(int(extrlocy)))),  1)
+    extrlocy = tbdata['extrlocy'].ravel() - 1.0
+    extrsize = tbdata['extrsize'].ravel() 
+    bk1size = tbdata['bk1size'].ravel()
+    bk2size = tbdata['bk2size'].ravel()
+    bk1offset = tbdata['bk1offst'].ravel()
+    bk2offset = tbdata['bk2offst'].ravel()
+    pix = np.arange(len(extrlocy))
+    pyplot.plot(pix, extrlocy, 'r', lw = 3)
+    pyplot.plot(pix, extrlocy - 0.5*extrsize, 'r--', lw = 2)
+    pyplot.plot(pix, extrlocy + 0.5*extrsize, 'r--', lw = 2)
+    pyplot.plot(pix, extrlocy + bk1offset, color = '#0022FF', lw = 2)
+    pyplot.plot(pix, extrlocy + bk1offset + 0.5*bk1size, color = '#0022FF', ls = '--', lw = 2)
+    pyplot.plot(pix, extrlocy + bk1offset - 0.5 * bk1size, color = '#0022FF', ls = '--', lw = 2)
+    pyplot.plot(pix, extrlocy + bk2offset, color = '#0022FF', lw = 2)
+    pyplot.plot(pix, extrlocy + bk2offset + 0.5*bk2size, color = '#0022FF', ls = '--', lw = 2)
+    pyplot.plot(pix, extrlocy + bk2offset - 0.5*bk2size, color = '#0022FF', ls = '--', lw = 2)
+    raw_input('Press enter to close and continue')
+    pyplot.close(fig3)
+    
+    
 if __name__ == "__main__":
 
     #Define colors for extracting more than one spectrum
@@ -284,6 +309,9 @@ if __name__ == "__main__":
         print 'Identify right background box'
         background_size2 = select_extraction_box_size(fig1, background_loc2, c)
         extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, options.backcorr, options.bksmode)
+        confirm_flag = raw_input('Would you like to confirm the location of your extraction on a 2D image? (y), n ')
+        if confirm_flag != 'n':
+            confirm_extraction_location(filename, img, extrlocy)
         another_spectrum_flag = raw_input('Extract another spectrum? ')
         i = i + 1
     os.remove(filename.replace('.fits', 'sub.fits'))
