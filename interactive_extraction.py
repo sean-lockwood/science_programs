@@ -127,7 +127,6 @@ def subtract_2D_cross_disp_background(img, fit):
     two_D_background = np.rot90(np.rot90(np.rot90(np.tile(fit, (1024, 1)))))
     return img - two_D_background
 
-
 def write_temp_subtracted_file(subtracted_img, filename):
     '''Write the subtracted image to a temporary file for calstis to extract from. This file is erased at the end of execution '''
     shutil.copyfile(filename, filename.replace('.fits', 'sub.fits'))
@@ -151,7 +150,6 @@ def select_extraction_location(fig1, c):
 
     return coords[0][0]
     
-
 def select_extraction_box_size(fig1, extrlocy, c):
     '''Interactively select the box size of an extraction or background region '''
     print 'Select extraction box'
@@ -169,14 +167,22 @@ def select_extraction_box_size(fig1, extrlocy, c):
 
 def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, backcorr_option, bksmode_option):
     '''Extract the spectrum using the calstis task x1d '''
-    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy))))):
-        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy)))))
+    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))))):
+        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i.fits' %(int(extrlocy)))))
         
     iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))), \
-                                       a2center = extrlocy, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
-                                       bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option, bksmode = bksmode_option)
- 
+                                       a2center = extrlocy + 1, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
+                                       bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option, bksmode = bksmode_option)  #a2center is 1 indexed
+    add_background_into_x1d(filename, fit, extrlocy)
 
+def add_background_into_x1d(filename, fit, extrlocy):
+    '''Add the fitted background back into the gross and background columns of the extracted spectrum'''
+    ofile = pyfits.open(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i.fits' %(int(extrlocy)))), mode = 'update')
+    ofile[1].data['gross'][:] = ofile[1].data['gross'][:] + fit[int(round(ofile[1].data['a2center'])) - 1] #a2center is 1 indexed
+    ofile[1].data['background'][:] = ofile[1].data['background'][:] + fit[int(round(ofile[1].data['a2center'])) - 1] #a2center is 1 indexed
+    ofile.flush()
+    ofile.close()
+ 
 if __name__ == "__main__":
 
     #Define colors for extracting more than one spectrum
