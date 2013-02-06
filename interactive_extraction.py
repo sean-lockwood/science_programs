@@ -36,17 +36,16 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
         remove_flag = 'y'
         #Get initial indx values from background file
         start_indx, end_indx  = np.genfromtxt(filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), unpack = True)
-        start_indx = np.int_(start_indx)
-        end_indx = np.int_(end_indx)
         #REMOVE BACKGROUND REGIONS
         while remove_flag != 'n':
             l2 = [] #list for line objects (this is so we can make them invisible later)
             l3 = [] #list of text objects (this is so we can make them invisible later)
             #Draw background regions as currently defined
             for i, sindx, eindx in zip(range(len(start_indx)), start_indx, end_indx):
-                temp_pix = pix_num[sindx:eindx+1]
-                temp_bkg = collapsed_img[sindx:eindx+1]
-                l2.append(pyplot.plot([pix_num[sindx], pix_num[eindx+1]], [collapsed_img[sindx], collapsed_img[eindx+1]], 'mo--', markersize = 5))
+                temp_indx = np.where((pix_num <= eindx) & (pix_num >= sindx))[0]
+                temp_pix = pix_num[temp_indx]
+                temp_bkg = collapsed_img[temp_indx]
+                l2.append(pyplot.plot([pix_num[temp_indx[0]], pix_num[temp_indx[-1] + 1]], [collapsed_img[temp_indx[0]], collapsed_img[temp_indx[-1]+1]], 'mo--', markersize = 5))
                 l3.append(pyplot.text(np.mean(temp_pix), np.max(temp_bkg), str(i)))
             remove_flag = raw_input('Would you like to remove any background regions? (y), n ')
             if remove_flag == 'n':
@@ -65,8 +64,9 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
                 itxt.set_visible(False)
         ofile = open(filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), 'w')
         for sindx, eindx in zip(start_indx, end_indx):
-            background_collapsed = np.append(background_collapsed, collapsed_img[sindx:eindx+1])
-            background_pix = np.append(background_pix, pix_num[sindx:eindx+1])
+            temp_indx = np.where((pix_num <= eindx) & (pix_num >= sindx))[0]
+            background_collapsed = np.append(background_collapsed, collapsed_img[temp_indx[0]:temp_indx[-1]+1])
+            background_pix = np.append(background_pix, pix_num[temp_indx[0]:temp_indx[-1]+1])
             ofile.write('%i\t %i \n' %(int(sindx),int(eindx)))
         finished_flag = raw_input('Finished entering points? (n), y ')
     #ADD BACKGROUND REGIONS
@@ -177,16 +177,39 @@ def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_siz
                                        bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option)
  
 
+def add_cluster_background_to_x1d(filename, fit, extrlocy_filename):
+    ofile = pyfits.open( filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy_filename))), mode = 'update')
+    tbdata = ofile[1].data
+    extrlocy = tbdata['extrlocy']
+    extrsize = tbdata['extrsize']
+    cluster_background = np.empty((0,))
+    #pdb.set_trace()
+    pix_array = np.arange(np.shape(fit)[0])
+    for pix in extrlocy[0]:
+        new_pix_array = pix_array.copy()
+        new_pix_array = np.append(new_pix_array, extrlocy - extrsize)
+        new_pix_array = np.append(new_pix_array, extrlocy + extrsize)
+        new_pix_array = np.sort(new_pix_array)
+        interp_fit = np.interp(new_pix_array, pix_array, fit)
+        lindx = np.where(new_pix_array == pix - extrsize[0])[0][0]
+        rindx = np.where(new_pix_array == pix + extrsize[0])[0][0]
+        #pdb.set_trace()
+        cluster_background = np.append(cluster_background, np.sum(interp_fit[lindx:rindx+1]))
+        
+    ofile[1].data['background'][:] = ofile[1].data['background']+ cluster_background
+    ofile.flush()
+    ofile.close()
+
 if __name__ == "__main__":
 
     #Define colors for extracting more than one spectrum
     colors = ['r', 'g', 'c', 'k', 'm']
 
     pyplot.ion()  #turn plotting on 
-    os.environ['oref'] = '/grp/hst/cdbs/oref/' #set oref environment variable to point to reference file location
-
+    #os.environ['oref'] = '/grp/hst/cdbs/oref/' #set oref environment variable to point to reference file location
+    os.environ['oref'] = '/Users/bostroem/science/oref/'
     parser = OptionParser()
-    parser.add_option('--backcorr', dest = 'backcorr', help = 'Enter perform or omit (default) to perform or omit the background subtraction in CalSTIS x1d', default = 'omit')
+    parser.add_option('--backcorr', dest = 'backcorr', help = 'Enter perform (default) or omit to perform or omit the background subtraction in CalSTIS x1d', default = 'perform')
     parser.add_option('--ncol', dest = 'num_cols', type = 'float', help = 'Number of columns summed when examining the cross-dispersion profile', default = 50)
     
     (options, args) = parser.parse_args()
@@ -211,7 +234,7 @@ if __name__ == "__main__":
     cenwave = pyfits.getval(filename, 'cenwave', 0)
     print type(cenwave)
     collapsed_img = collapse_spectrum(img, options.num_cols)
-    pix_num = range(len(collapsed_img))
+    pix_num = np.arange(len(collapsed_img))
     ax1.plot(pix_num, collapsed_img)
     
     if find_background_flag == 'y':  #interactvely define background
@@ -275,11 +298,12 @@ if __name__ == "__main__":
         print 'Identify right background box'
         background_size2 = select_extraction_box_size(fig1, background_loc2, c)
         extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, options.backcorr)
+        add_cluster_background_to_x1d(filename, fit, extrlocy)
         another_spectrum_flag = raw_input('Extract another spectrum?')
         i = i + 1
     os.remove(filename.replace('.fits', 'sub.fits'))
 
 
 
-
+#Add log file which records degree polynomial fit, extraction locations and box sizes
 
