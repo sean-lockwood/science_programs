@@ -172,7 +172,7 @@ def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_siz
     if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy))))):
         os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy)))))
         
-    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy))), \
+    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))), \
                                        a2center = extrlocy, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
                                        bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option, bksmode = bksmode_option)
  
