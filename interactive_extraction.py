@@ -167,14 +167,14 @@ def select_extraction_box_size(fig1, extrlocy, c):
             pyplot.draw()
     return half_box*2
 
-def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, backcorr_option):
+def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, backcorr_option, bksmode_option):
     '''Extract the spectrum using the calstis task x1d '''
     if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy))))):
         os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy)))))
         
     iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy))), \
                                        a2center = extrlocy, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
-                                       bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option)
+                                       bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option, bksmode = bksmode_option)
  
 
 if __name__ == "__main__":
@@ -188,6 +188,7 @@ if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option('--backcorr', dest = 'backcorr', help = 'Enter perform or omit (default) to perform or omit the background subtraction in CalSTIS x1d', default = 'perform')
     parser.add_option('--ncol', dest = 'num_cols', type = 'float', help = 'Number of columns summed when examining the cross-dispersion profile', default = 50)
+    parser.add_option('--backsmooth', dest = 'bksmode', help = 'Background smoothing mode: off, median, average', default = 'off')
     
     (options, args) = parser.parse_args()
     
@@ -197,9 +198,11 @@ if __name__ == "__main__":
         ext = int(sys.argv[2])
     except:
         ext = 1
-
-    
-    find_background_flag = raw_input('Select the background regions? y, (n) ') #read background from file or interactively define?
+    cenwave = pyfits.getval(filename, 'cenwave', 0)
+    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits','_c%i_background_regions.txt'%(cenwave)))):
+        find_background_flag = raw_input('Select the background regions? y, (n) ') #read background from file or interactively define?
+    else:
+        find_background_flag = 'y'
 
     #set up figure and plot cross-dispersion profile
     fig1 = pyplot.figure(1)
@@ -208,8 +211,7 @@ if __name__ == "__main__":
     ax1.set_ylabel('Total Counts Summed in the Dispersion Direction')
     #pdb.set_trace()
     img = pyfits.getdata(filename, ext)
-    cenwave = pyfits.getval(filename, 'cenwave', 0)
-    print type(cenwave)
+    
     collapsed_img = collapse_spectrum(img, options.num_cols)
     pix_num = range(len(collapsed_img))
     ax1.plot(pix_num, collapsed_img)
@@ -255,6 +257,7 @@ if __name__ == "__main__":
     sub_collapsed_img = collapse_spectrum(subtracted_img, options.num_cols)
     ax1.cla()
     ax1.plot(pix_num, sub_collapsed_img) #Plot the cross dispersion profile of the subtracted image
+    ax1.axhline(0, ls = '--', color = 'k')
     another_spectrum_flag = 'y'  #this flag denotes wanting to extract more than one spectrum from a subtracted image
     i = 0
     while another_spectrum_flag != 'n':  #for each spectrum
@@ -274,8 +277,8 @@ if __name__ == "__main__":
         background_loc2 = select_extraction_location(fig1, c)
         print 'Identify right background box'
         background_size2 = select_extraction_box_size(fig1, background_loc2, c)
-        extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, options.backcorr)
-        another_spectrum_flag = raw_input('Extract another spectrum?')
+        extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, options.backcorr, options.bksmode)
+        another_spectrum_flag = raw_input('Extract another spectrum? ')
         i = i + 1
     os.remove(filename.replace('.fits', 'sub.fits'))
 
