@@ -183,31 +183,6 @@ def add_background_into_x1d(filename, fit, extrlocy):
     ofile.flush()
     ofile.close()
 
-<<<<<<< HEAD
-def add_cluster_background_to_x1d(filename, fit, extrlocy_filename):
-    ofile = pyfits.open( filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy_filename))), mode = 'update')
-    tbdata = ofile[1].data
-    extrlocy = tbdata['extrlocy']
-    extrsize = tbdata['extrsize']
-    cluster_background = np.empty((0,))
-    #pdb.set_trace()
-    pix_array = np.arange(np.shape(fit)[0])
-    for pix in extrlocy[0]:
-        new_pix_array = pix_array.copy()
-        new_pix_array = np.append(new_pix_array, extrlocy - extrsize)
-        new_pix_array = np.append(new_pix_array, extrlocy + extrsize)
-        new_pix_array = np.sort(new_pix_array)
-        interp_fit = np.interp(new_pix_array, pix_array, fit)
-        lindx = np.where(new_pix_array == pix - extrsize[0])[0][0]
-        rindx = np.where(new_pix_array == pix + extrsize[0])[0][0]
-        #pdb.set_trace()
-        cluster_background = np.append(cluster_background, np.sum(interp_fit[lindx:rindx+1]))
-        
-    ofile[1].data['background'][:] = ofile[1].data['background']+ cluster_background
-    ofile.flush()
-    ofile.close()
-
-=======
 def confirm_extraction_location(filename, img, extrlocy):
     fig3 = pyplot.figure(3)
     ax3 = fig3.add_subplot(1, 1, 1)
@@ -233,7 +208,6 @@ def confirm_extraction_location(filename, img, extrlocy):
     pyplot.close(fig3)
     
     
->>>>>>> 096b7060216dca461f505d010da4ba606e5b0665
 if __name__ == "__main__":
 
     #Define colors for extracting more than one spectrum
@@ -243,11 +217,7 @@ if __name__ == "__main__":
     #os.environ['oref'] = '/grp/hst/cdbs/oref/' #set oref environment variable to point to reference file location
     os.environ['oref'] = '/Users/bostroem/science/oref/'
     parser = OptionParser()
-<<<<<<< HEAD
     parser.add_option('--backcorr', dest = 'backcorr', help = 'Enter perform (default) or omit to perform or omit the background subtraction in CalSTIS x1d', default = 'perform')
-=======
-    parser.add_option('--backcorr', dest = 'backcorr', help = 'Enter perform or omit (default) to perform or omit the background subtraction in CalSTIS x1d', default = 'perform')
->>>>>>> 096b7060216dca461f505d010da4ba606e5b0665
     parser.add_option('--ncol', dest = 'num_cols', type = 'float', help = 'Number of columns summed when examining the cross-dispersion profile', default = 50)
     parser.add_option('--backsmooth', dest = 'bksmode', help = 'Background smoothing mode: off, median, average', default = 'off')
     
@@ -338,17 +308,12 @@ if __name__ == "__main__":
         background_loc2 = select_extraction_location(fig1, c)
         print 'Identify right background box'
         background_size2 = select_extraction_box_size(fig1, background_loc2, c)
-<<<<<<< HEAD
-        extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, options.backcorr)
-        add_cluster_background_to_x1d(filename, fit, extrlocy)
-        another_spectrum_flag = raw_input('Extract another spectrum?')
-=======
+
         extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, options.backcorr, options.bksmode)
         confirm_flag = raw_input('Would you like to confirm the location of your extraction on a 2D image? (y), n ')
         if confirm_flag != 'n':
             confirm_extraction_location(filename, img, extrlocy)
         another_spectrum_flag = raw_input('Extract another spectrum? ')
->>>>>>> 096b7060216dca461f505d010da4ba606e5b0665
         i = i + 1
     os.remove(filename.replace('.fits', 'sub.fits'))
 
