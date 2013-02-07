@@ -205,8 +205,16 @@ def calibrate(composite_file, a2center = 513.0):
     aper_offset1 = get_aperture_offset(hdr0, ref_aper)
     disp_coeff = modify_disp_coeff(disp_coeff, inang_coeff1, aper_offset1, hdr0, hdr1)
     wave = np.empty((0,))
-    for pix in spec['pixel'] + 1.0:
+    for pix in np.arange(len(spec['net'].ravel())) + 1.0:
         wave = np.append(wave, disp_solution_function(disp_coeff, pix))
     wave = helcorr(wave, hdr1)
     return wave, spec['net']
  
+
+if __name__ == "__main__":
+    filename = sys.argv[1]
+    try:
+        a2center = sys.argv[2]
+    except:
+        a2center = 513.0
+    calibrate(filename, a2center = a2center)
