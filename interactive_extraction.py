@@ -214,8 +214,11 @@ if __name__ == "__main__":
     colors = ['r', 'g', 'c', 'k', 'm']
 
     pyplot.ion()  #turn plotting on 
-    #os.environ['oref'] = '/grp/hst/cdbs/oref/' #set oref environment variable to point to reference file location
-    os.environ['oref'] = '/Users/bostroem/science/oref/'
+    #
+    if os.path.exists('/grp/hst/cdbs/oref'):
+        os.environ['oref'] = '/grp/hst/cdbs/oref/' #set oref environment variable to point to reference file location
+    else:
+        os.environ['oref'] = '/Users/bostroem/science/oref/'
     parser = OptionParser()
     parser.add_option('--backcorr', dest = 'backcorr', help = 'Enter perform (default) or omit to perform or omit the background subtraction in CalSTIS x1d', default = 'perform')
     parser.add_option('--ncol', dest = 'num_cols', type = 'float', help = 'Number of columns summed when examining the cross-dispersion profile', default = 50)
