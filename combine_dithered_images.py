@@ -172,9 +172,9 @@ def make_combined_fits(hdr0, hdr1, hdr2, hdr3, new_img, new_err, new_dq, cenwave
     hdu3 = pyfits.ImageHDU(data = np.int16(new_dq), name = 'DQ', header = hdr3)
     hdulist = pyfits.HDUList([hdu0, hdu1, hdu2, hdu3])
     if cenwave:
-        hdulist.writeto('%s_%i_combined_img.fits' %(hdr0['targname'], hdr0['cenwave']), clobber = True)
+        hdulist.writeto('%s_%i_combined_img.fits' %(hdr0['targname'][5:], hdr0['cenwave']), clobber = True)
     else:
-        hdulist.writeto('%s_combined_img.fits' %(hdr0['targname']), clobber = True)
+        hdulist.writeto('%s_combined_img.fits' %(hdr0['targname'][5:]), clobber = True)
 
 
 

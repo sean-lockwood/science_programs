@@ -127,7 +127,6 @@ def subtract_2D_cross_disp_background(img, fit):
     two_D_background = np.rot90(np.rot90(np.rot90(np.tile(fit, (1024, 1)))))
     return img - two_D_background
 
-
 def write_temp_subtracted_file(subtracted_img, filename):
     '''Write the subtracted image to a temporary file for calstis to extract from. This file is erased at the end of execution '''
     shutil.copyfile(filename, filename.replace('.fits', 'sub.fits'))
@@ -151,7 +150,6 @@ def select_extraction_location(fig1, c):
 
     return coords[0][0]
     
-
 def select_extraction_box_size(fig1, extrlocy, c):
     '''Interactively select the box size of an extraction or background region '''
     print 'Select extraction box'
@@ -167,16 +165,25 @@ def select_extraction_box_size(fig1, extrlocy, c):
             pyplot.draw()
     return half_box*2
 
-def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, backcorr_option):
+def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, backcorr_option, bksmode_option):
     '''Extract the spectrum using the calstis task x1d '''
-    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy))))):
-        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy)))))
+    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))))):
+        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i.fits' %(int(extrlocy)))))
         
-    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy))), \
-                                       a2center = extrlocy, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
-                                       bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option)
- 
+    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))), \
+                                       a2center = extrlocy + 1, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
+                                       bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option, bksmode = bksmode_option)  #a2center is 1 indexed
+    add_background_into_x1d(filename, fit, extrlocy)
 
+def add_background_into_x1d(filename, fit, extrlocy):
+    '''Add the fitted background back into the gross and background columns of the extracted spectrum'''
+    ofile = pyfits.open(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i.fits' %(int(extrlocy)))), mode = 'update')
+    ofile[1].data['gross'][:] = ofile[1].data['gross'][:] + fit[int(round(ofile[1].data['a2center'])) - 1] #a2center is 1 indexed
+    ofile[1].data['background'][:] = ofile[1].data['background'][:] + fit[int(round(ofile[1].data['a2center'])) - 1] #a2center is 1 indexed
+    ofile.flush()
+    ofile.close()
+
+<<<<<<< HEAD
 def add_cluster_background_to_x1d(filename, fit, extrlocy_filename):
     ofile = pyfits.open( filename.replace('.fits', '_loc%i_x1d.fits' %(int(extrlocy_filename))), mode = 'update')
     tbdata = ofile[1].data
@@ -200,6 +207,33 @@ def add_cluster_background_to_x1d(filename, fit, extrlocy_filename):
     ofile.flush()
     ofile.close()
 
+=======
+def confirm_extraction_location(filename, img, extrlocy):
+    fig3 = pyplot.figure(3)
+    ax3 = fig3.add_subplot(1, 1, 1)
+    ax3.imshow(np.log10(img), interpolation = 'nearest', origin = 'lower', cmap = 'gray')
+    tbdata =  pyfits.getdata(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i.fits' %(int(extrlocy)))),  1)
+    extrlocy = tbdata['extrlocy'].ravel() - 1.0
+    extrsize = tbdata['extrsize'].ravel() 
+    bk1size = tbdata['bk1size'].ravel()
+    bk2size = tbdata['bk2size'].ravel()
+    bk1offset = tbdata['bk1offst'].ravel()
+    bk2offset = tbdata['bk2offst'].ravel()
+    pix = np.arange(len(extrlocy))
+    pyplot.plot(pix, extrlocy, 'r', lw = 3)
+    pyplot.plot(pix, extrlocy - 0.5*extrsize, 'r--', lw = 2)
+    pyplot.plot(pix, extrlocy + 0.5*extrsize, 'r--', lw = 2)
+    pyplot.plot(pix, extrlocy + bk1offset, color = '#0022FF', lw = 2)
+    pyplot.plot(pix, extrlocy + bk1offset + 0.5*bk1size, color = '#0022FF', ls = '--', lw = 2)
+    pyplot.plot(pix, extrlocy + bk1offset - 0.5 * bk1size, color = '#0022FF', ls = '--', lw = 2)
+    pyplot.plot(pix, extrlocy + bk2offset, color = '#0022FF', lw = 2)
+    pyplot.plot(pix, extrlocy + bk2offset + 0.5*bk2size, color = '#0022FF', ls = '--', lw = 2)
+    pyplot.plot(pix, extrlocy + bk2offset - 0.5*bk2size, color = '#0022FF', ls = '--', lw = 2)
+    raw_input('Press enter to close and continue')
+    pyplot.close(fig3)
+    
+    
+>>>>>>> 096b7060216dca461f505d010da4ba606e5b0665
 if __name__ == "__main__":
 
     #Define colors for extracting more than one spectrum
@@ -209,8 +243,13 @@ if __name__ == "__main__":
     #os.environ['oref'] = '/grp/hst/cdbs/oref/' #set oref environment variable to point to reference file location
     os.environ['oref'] = '/Users/bostroem/science/oref/'
     parser = OptionParser()
+<<<<<<< HEAD
     parser.add_option('--backcorr', dest = 'backcorr', help = 'Enter perform (default) or omit to perform or omit the background subtraction in CalSTIS x1d', default = 'perform')
+=======
+    parser.add_option('--backcorr', dest = 'backcorr', help = 'Enter perform or omit (default) to perform or omit the background subtraction in CalSTIS x1d', default = 'perform')
+>>>>>>> 096b7060216dca461f505d010da4ba606e5b0665
     parser.add_option('--ncol', dest = 'num_cols', type = 'float', help = 'Number of columns summed when examining the cross-dispersion profile', default = 50)
+    parser.add_option('--backsmooth', dest = 'bksmode', help = 'Background smoothing mode: off, median, average', default = 'off')
     
     (options, args) = parser.parse_args()
     
@@ -220,9 +259,11 @@ if __name__ == "__main__":
         ext = int(sys.argv[2])
     except:
         ext = 1
-
-    
-    find_background_flag = raw_input('Select the background regions? y, (n) ') #read background from file or interactively define?
+    cenwave = pyfits.getval(filename, 'cenwave', 0)
+    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits','_c%i_background_regions.txt'%(cenwave)))):
+        find_background_flag = raw_input('Select the background regions? y, (n) ') #read background from file or interactively define?
+    else:
+        find_background_flag = 'y'
 
     #set up figure and plot cross-dispersion profile
     fig1 = pyplot.figure(1)
@@ -231,8 +272,7 @@ if __name__ == "__main__":
     ax1.set_ylabel('Total Counts Summed in the Dispersion Direction')
     #pdb.set_trace()
     img = pyfits.getdata(filename, ext)
-    cenwave = pyfits.getval(filename, 'cenwave', 0)
-    print type(cenwave)
+    
     collapsed_img = collapse_spectrum(img, options.num_cols)
     pix_num = np.arange(len(collapsed_img))
     ax1.plot(pix_num, collapsed_img)
@@ -278,6 +318,7 @@ if __name__ == "__main__":
     sub_collapsed_img = collapse_spectrum(subtracted_img, options.num_cols)
     ax1.cla()
     ax1.plot(pix_num, sub_collapsed_img) #Plot the cross dispersion profile of the subtracted image
+    ax1.axhline(0, ls = '--', color = 'k')
     another_spectrum_flag = 'y'  #this flag denotes wanting to extract more than one spectrum from a subtracted image
     i = 0
     while another_spectrum_flag != 'n':  #for each spectrum
@@ -297,9 +338,17 @@ if __name__ == "__main__":
         background_loc2 = select_extraction_location(fig1, c)
         print 'Identify right background box'
         background_size2 = select_extraction_box_size(fig1, background_loc2, c)
+<<<<<<< HEAD
         extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, options.backcorr)
         add_cluster_background_to_x1d(filename, fit, extrlocy)
         another_spectrum_flag = raw_input('Extract another spectrum?')
+=======
+        extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, options.backcorr, options.bksmode)
+        confirm_flag = raw_input('Would you like to confirm the location of your extraction on a 2D image? (y), n ')
+        if confirm_flag != 'n':
+            confirm_extraction_location(filename, img, extrlocy)
+        another_spectrum_flag = raw_input('Extract another spectrum? ')
+>>>>>>> 096b7060216dca461f505d010da4ba606e5b0665
         i = i + 1
     os.remove(filename.replace('.fits', 'sub.fits'))
 
