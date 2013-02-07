@@ -210,11 +210,3 @@ def calibrate(composite_file, a2center = 513.0):
     wave = helcorr(wave, hdr1)
     return wave, spec['net']
  
-
-if __name__ == "__main__":
-    filename = sys.argv[1]
-    try:
-        a2center = sys.argv[2]
-    except:
-        a2center = 513.0
-    calibrate(filename, a2center = a2center)
