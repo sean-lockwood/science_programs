@@ -74,7 +74,10 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
         print 'Select background points for cross-dispersion background subtraction'
         temp_region = fig1.ginput(n = 2, timeout = -1)
         back_reg = [temp_region[0][0], temp_region[1][0]]
-        l1 = pyplot.plot(back_reg, np.interp(np.array(back_reg), pix_num, collapsed_img), 'r|-', markersize = 5)
+        if first_time is True:
+            l1 = pyplot.plot(back_reg, np.interp(np.array(back_reg), pix_num, collapsed_img), 'r|-', markersize = 5)
+        else:
+            l1 = pyplot.plot(back_reg, np.interp(np.array(back_reg), pix_num, collapsed_img), '|-', markersize = 5)
         pyplot.draw()
         keep_flag = raw_input('Keep points? (y), n ')
         if keep_flag != 'n':
