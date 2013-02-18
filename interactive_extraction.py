@@ -7,6 +7,7 @@ import pdb
 import os
 import shutil
 from optparse import OptionParser
+from scipy.interpolate import LSQUnivariateSpline
 
 
 import pyraf
@@ -36,13 +37,19 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
         remove_flag = 'y'
         #Get initial indx values from background file
         start_indx, end_indx  = np.genfromtxt(filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), unpack = True)
+        sort_indx = np.argsort(start_indx)
+        start_indx = start_indx[sort_indx]
+        end_indx = end_indx[sort_indx]
         #REMOVE BACKGROUND REGIONS
         while remove_flag != 'n':
             l2 = [] #list for line objects (this is so we can make them invisible later)
             l3 = [] #list of text objects (this is so we can make them invisible later)
             #Draw background regions as currently defined
             for i, sindx, eindx in zip(range(len(start_indx)), start_indx, end_indx):
-                temp_indx = np.where((pix_num <= eindx) & (pix_num >= sindx))[0]
+                if sindx < eindx:
+                    temp_indx = np.where((pix_num <= eindx) & (pix_num >= sindx))[0]
+                else:  #in case you defined a background region from right to left
+                    temp_indx = np.where((pix_num <= sindx) & (pix_num >= eindx))[0]
                 temp_pix = pix_num[temp_indx]
                 temp_bkg = collapsed_img[temp_indx]
                 l2.append(pyplot.plot([pix_num[temp_indx[0]], pix_num[temp_indx[-1] + 1]], [collapsed_img[temp_indx[0]], collapsed_img[temp_indx[-1]+1]], 'mo--', markersize = 5))
@@ -69,6 +76,7 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
             background_pix = np.append(background_pix, pix_num[temp_indx[0]:temp_indx[-1]+1])
             ofile.write('%i\t %i \n' %(int(sindx),int(eindx)))
         finished_flag = raw_input('Finished entering points? (n), y ')
+
     #ADD BACKGROUND REGIONS
     while finished_flag != 'y':
         print 'Select background points for cross-dispersion background subtraction'
@@ -92,38 +100,52 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
     sort_indx = np.argsort(background_pix)
     background_pix = background_pix[sort_indx]
     background_collapsed = background_collapsed[sort_indx]
-
+    if l2:  #remove any residual background line labeling
+        for iline, itxt in zip(l2, l3):
+            iline[0].set_visible(False)
+            itxt.set_visible(False)
+    if l1:
+        l1[0].set_visible(False)
     return fig1, ax1, background_pix, background_collapsed
 
 def fit_background(fig1, ax1, background_pix, background_collapsed, pix_num):
     '''Interactively fit background regions with a polynomial '''
-    deg = 5
     change_deg_flag = 'y'
-    leg_text = ['%i' %(deg)]
     leg_lines = []
-    while change_deg_flag != 'n':
-        coeff = np.polyfit(background_pix, background_collapsed, deg)
-        fit = np.polyval(coeff, pix_num)
-        l1 = ax1.plot(pix_num, fit, lw = 2)
-        leg_lines.append(l1[0])
-        pyplot.legend(leg_lines, leg_text, loc = 'best')
-        pyplot.draw()
-        change_deg_flag = raw_input('Replot with a different degree polynomial? (y), n -or- redefine background, r ')
-        if (change_deg_flag != 'n') and (change_deg_flag != 'r'):
-            l1[0].set_linestyle('--')
-            pyplot.draw()
-            try:
-                deg = int(raw_input('Enter degree of polynomial you wish to fit: '))
-            except ValueError:
-                print 'The value you entered cannot be converted to an integer, try again'
-                deg = int(raw_input('Enter degree of polynomial you wish to fit: '))
-
-            leg_text.append('%i' %(deg))
-        elif change_deg_flag == 'r':
-            for l in leg_lines:
-                l.set_visible(False)
-            return None, None
+    leg_text = []
+    for i in np.arange(5)+1:
+        fit = spline_fit(background_pix, background_collapsed, pix_num, ax1, order = i)
+        l = ax1.plot(pix_num, fit)
+        leg_lines.append(l[0])
+        leg_text.append('spline, order %i' %(i))
+    fig1.canvas.draw()
+    leg = ax1.legend(leg_lines, leg_text)
+    change_deg_flag = raw_input('Select which order spline you would like to use for your fit (1, 2, 3, 4, 5), -or- redefine background, r ')
+    if change_deg_flag != 'r':
+        while int(change_deg_flag) not in [1, 2, 3, 4, 5]:
+            change_deg_flag = raw_input('Enter a valid spline degree: ')
+        fit = spline_fit(background_pix, background_collapsed, pix_num, ax1, order = int(change_deg_flag))
+    else:
+        for l in leg_lines:
+            l.set_visible(False)
+        return None, None
     return ax1, fit
+
+def spline_fit(background_pix, background_collapsed, pix_num, ax1, order = 3):
+    '''Fit background w/ Spline'''
+    sub_values = background_pix[1:] - background_pix[:-1]
+    stop_indx = np.append(np.where(sub_values > 1.0)[0], -1)
+    start_indx = np.append(0, np.where(sub_values > 1.0)[0] + 1)
+
+    #Place nodes at the begining and ending of each background region
+    nodes = np.append(background_pix[start_indx[1:]], background_pix[stop_indx[:-1]])
+    nodes.sort()
+    y = LSQUnivariateSpline(background_pix, background_collapsed, nodes, k = order)
+    ax1.plot(background_pix, background_collapsed, '.')
+    for n in nodes: ax1.axvline(n, color = 'r', linestyle = ':')
+    return y(pix_num)
+
+
 
 def subtract_2D_cross_disp_background(img, fit):
     '''Create a 2D image from the 1D fit to the background in the cross dispersion direction and subtract it from the image '''
@@ -252,7 +274,7 @@ if __name__ == "__main__":
     collapsed_img = collapse_spectrum(img, options.num_cols)
     pix_num = np.arange(len(collapsed_img))
     ax1.plot(pix_num, collapsed_img)
-    
+    ax1.set_ylim(np.min(collapsed_img), np.max(collapsed_img))
     if find_background_flag == 'y':  #interactvely define background
         #Display 2D image
         disp_2d = raw_input('Would you like to display the 2D image? y, (n) ')
