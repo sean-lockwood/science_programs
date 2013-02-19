@@ -100,12 +100,16 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
     sort_indx = np.argsort(background_pix)
     background_pix = background_pix[sort_indx]
     background_collapsed = background_collapsed[sort_indx]
-    if l2:  #remove any residual background line labeling
+    try:  #remove any residual background line labeling
         for iline, itxt in zip(l2, l3):
             iline[0].set_visible(False)
             itxt.set_visible(False)
-    if l1:
+    except:
+        pass
+    try:
         l1[0].set_visible(False)
+    except:
+        pass
     return fig1, ax1, background_pix, background_collapsed
 
 def fit_background(fig1, ax1, background_pix, background_collapsed, pix_num):
@@ -118,8 +122,8 @@ def fit_background(fig1, ax1, background_pix, background_collapsed, pix_num):
         l = ax1.plot(pix_num, fit)
         leg_lines.append(l[0])
         leg_text.append('spline, order %i' %(i))
-    fig1.canvas.draw()
     leg = ax1.legend(leg_lines, leg_text)
+    fig1.canvas.draw()
     change_deg_flag = raw_input('Select which order spline you would like to use for your fit (1, 2, 3, 4, 5), -or- redefine background, r ')
     if change_deg_flag != 'r':
         while int(change_deg_flag) not in [1, 2, 3, 4, 5]:
@@ -141,8 +145,9 @@ def spline_fit(background_pix, background_collapsed, pix_num, ax1, order = 3):
     nodes = np.append(background_pix[start_indx[1:]], background_pix[stop_indx[:-1]])
     nodes.sort()
     y = LSQUnivariateSpline(background_pix, background_collapsed, nodes, k = order)
-    ax1.plot(background_pix, background_collapsed, '.')
-    for n in nodes: ax1.axvline(n, color = 'r', linestyle = ':')
+    #For debugging, plots the node locations and the points IDed as background regions
+    #ax1.plot(background_pix, background_collapsed, '.')
+    #for n in nodes: ax1.axvline(n, color = 'r', linestyle = ':')
     return y(pix_num)
 
 
