@@ -20,23 +20,23 @@ def collapse_spectrum(img, num_cols):
     collapsed_img = np.sum(img[:, int(512 - num_cols/2.0):int(512 + num_cols/2.0)], axis = 1)/num_cols
     return collapsed_img
 
-def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwave, first_time = True):
+def get_background_locations(input, fig1, ax1, pix_num, collapsed_img, cenwave, first_time = True):
     '''Interactively select the regions to be fit as background '''
     finished_flag = 'n'
     background_collapsed = np.empty((0,))
     background_pix = np.empty((0,))
     #no background regions defined
     if first_time is True:
-        if os.path.exists(filename.replace('.fits', '_c%i_background_regions.txt' %(cenwave))):
-            keep_file_flag = raw_input('Background file already exists: Overwrite file (w) or Append to file (a)')
+        if os.path.exists(input.filename.replace('.fits', '_c%i_background_regions.txt' %(cenwave))):
+            keep_file_flag = raw_input('Background file already exists: Overwrite file (w) or Append to file (a)') #you should never enter this loop if mode = passive
         else:
             keep_file_flag = 'w'
-        ofile = open(filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), keep_file_flag)
+        ofile = open(input.filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), keep_file_flag)
     #Background regions have been defined - adding or removing some of them
     if first_time is False:
         remove_flag = 'y'
         #Get initial indx values from background file
-        start_indx, end_indx  = np.genfromtxt(filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), unpack = True)
+        start_indx, end_indx  = np.genfromtxt(input.filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), unpack = True)
         sort_indx = np.argsort(start_indx)
         start_indx = start_indx[sort_indx]
         end_indx = end_indx[sort_indx]
@@ -54,14 +54,14 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
                 temp_bkg = collapsed_img[temp_indx]
                 l2.append(pyplot.plot([pix_num[temp_indx[0]], pix_num[temp_indx[-1] + 1]], [collapsed_img[temp_indx[0]], collapsed_img[temp_indx[-1]+1]], 'mo--', markersize = 5))
                 l3.append(pyplot.text(np.mean(temp_pix), np.max(temp_bkg), str(i)))
-            remove_flag = raw_input('Would you like to remove any background regions? (y), n ')
+            remove_flag = interact_w_user(input.mode, message = 'Would you like to remove any background regions? (y), n ', default = 'n')
             if remove_flag == 'n':
                 break
             try:
-                remove_indx = int(raw_input('Enter the number of the region you wish to remove: '))
+                remove_indx = interact_w_user(input.mode, message = 'Enter the number of the region you wish to remove: ', default = 1) #you should never enter this loop if mode = passive
             except ValueError:
                 print 'You must enter something that can be converted into an integer'
-                remove_indx = int(raw_input('Enter the number of the region you wish to remove: '))
+                remove_indx = interact_w_user(input.mode, message = 'Enter the number of the region you wish to remove: ', default = 1) #you should never enter this loop if mode = passive
             #remove indx from start_indx and end_indx
             start_indx = np.append(start_indx[0:remove_indx], start_indx[remove_indx+1:])
             end_indx = np.append(end_indx[0:remove_indx], end_indx[remove_indx+1:])
@@ -69,13 +69,13 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
             for iline, itxt in zip(l2, l3):
                 iline[0].set_visible(False)
                 itxt.set_visible(False)
-        ofile = open(filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), 'w')
+        ofile = open(input.filename.replace('.fits','_c%i_background_regions.txt' %(cenwave)), 'w')
         for sindx, eindx in zip(start_indx, end_indx):
             temp_indx = np.where((pix_num <= eindx) & (pix_num >= sindx))[0]
             background_collapsed = np.append(background_collapsed, collapsed_img[temp_indx[0]:temp_indx[-1]+1])
             background_pix = np.append(background_pix, pix_num[temp_indx[0]:temp_indx[-1]+1])
             ofile.write('%i\t %i \n' %(int(sindx),int(eindx)))
-        finished_flag = raw_input('Finished entering points? (n), y ')
+        finished_flag = interact_w_user(input.mode, message = 'Finished entering points? (n), y ', default = 'y')
 
     #ADD BACKGROUND REGIONS
     while finished_flag != 'y':
@@ -87,7 +87,7 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
         else:
             l1 = pyplot.plot(back_reg, np.interp(np.array(back_reg), pix_num, collapsed_img), '|-', markersize = 5)
         pyplot.draw()
-        keep_flag = raw_input('Keep points? (y), n ')
+        keep_flag = interact_w_user(input.mode, message = 'Keep points? (y), n ', default = 'y')
         if keep_flag != 'n':
             ofile.write('%i\t %i \n' %(int(math.floor(temp_region[0][0])),int(math.ceil(temp_region[1][0]))))
             background_collapsed = np.append(background_collapsed, collapsed_img[int(math.floor(temp_region[0][0])):int(math.ceil(temp_region[1][0]))+1])
@@ -95,7 +95,7 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
         else:
             l1[0].set_visible(False)
             pyplot.draw()
-        finished_flag = raw_input('Finished entering points? (n), y ')
+        finished_flag = interact_w_user(input.mode, message = 'Finished entering points? (n), y', default = 'y')
     ofile.close()
     sort_indx = np.argsort(background_pix)
     background_pix = background_pix[sort_indx]
@@ -112,8 +112,8 @@ def get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwav
         pass
     return fig1, ax1, background_pix, background_collapsed
 
-def fit_background(fig1, ax1, background_pix, background_collapsed, pix_num):
-    '''Interactively fit background regions with a polynomial '''
+def fit_background(input, fig1, ax1, background_pix, background_collapsed, pix_num):
+    '''Interactively fit background regions with a spline '''
     change_deg_flag = 'y'
     leg_lines = []
     leg_text = []
@@ -124,10 +124,10 @@ def fit_background(fig1, ax1, background_pix, background_collapsed, pix_num):
         leg_text.append('spline, order %i' %(i))
     leg = ax1.legend(leg_lines, leg_text)
     fig1.canvas.draw()
-    change_deg_flag = raw_input('Select which order spline you would like to use for your fit (1, 2, 3, 4, 5), -or- redefine background, r ')
+    change_deg_flag = interact_w_user(input.mode, message = 'Select which order spline you would like to use for your fit (1, 2, 3, 4, 5), -or- redefine background, r ', default = 3)
     if change_deg_flag != 'r':
         while int(change_deg_flag) not in [1, 2, 3, 4, 5]:
-            change_deg_flag = raw_input('Enter a valid spline degree: ')
+            change_deg_flag = raw_input('Enter a valid spline degree: ')  #you should never enter this loop if mode = passive
         fit = spline_fit(background_pix, background_collapsed, pix_num, ax1, order = int(change_deg_flag))
     else:
         for l in leg_lines:
@@ -143,9 +143,10 @@ def spline_fit(background_pix, background_collapsed, pix_num, ax1, order = 3):
 
     #Place nodes at the begining and ending of each background region
     nodes = np.append(background_pix[start_indx[1:]], background_pix[stop_indx[:-1]])
+    nodes = list(set(nodes))  #make sure each node is unique
     nodes.sort()
     y = LSQUnivariateSpline(background_pix, background_collapsed, nodes, k = order)
-    #For debugging, plots the node locations and the points IDed as background regions
+    ###For debugging, plots the node locations and the points IDed as background regions###
     #ax1.plot(background_pix, background_collapsed, '.')
     #for n in nodes: ax1.axvline(n, color = 'r', linestyle = ':')
     return y(pix_num)
@@ -157,32 +158,32 @@ def subtract_2D_cross_disp_background(img, fit):
     two_D_background = np.rot90(np.rot90(np.rot90(np.tile(fit, (1024, 1)))))
     return img - two_D_background
 
-def write_temp_subtracted_file(subtracted_img, filename):
+def write_temp_subtracted_file(input, subtracted_img):
     '''Write the subtracted image to a temporary file for calstis to extract from. This file is erased at the end of execution '''
-    shutil.copyfile(filename, filename.replace('.fits', 'sub.fits'))
-    ofile = pyfits.open(filename.replace('.fits', 'sub.fits'), mode = 'update')
+    shutil.copyfile(input.filename, input.filename.replace('.fits', 'sub.fits'))
+    ofile = pyfits.open(input.filename.replace('.fits', 'sub.fits'), mode = 'update')
     ofile[1].data = subtracted_img
     ofile.flush()
     ofile.close()
 
-def select_extraction_location(fig1, c):
+def select_extraction_location(fig1, c, region_to_mark = 'spectrum'):  #you should never enter this function if mode = passive
     '''Interactvely select the center of an extraction or background region '''
-    raw_input('Zoom in on spectrum, hit Enter when finished')
-    print 'Select spectrum location'
+    interact_w_user(input.mode, message = 'Zoom in on spectrum, hit Enter when finished')
+    print 'Select %s location' %(region_to_mark)
     keep_flag = 'n'
     while keep_flag == 'n':
         coords = fig1.ginput(n = 1, timeout = -1)
         ln = pyplot.plot([coords[0][0]], [coords[0][1]], '%s+' %(c))
-        keep_flag = raw_input('Keep selection? (y), n ')
+        keep_flag = raw_input('Keep selection? (y), n ') 
         if keep_flag == 'n':
             ln[0].set_visible(False)
             pyplot.draw()
 
     return coords[0][0]
     
-def select_extraction_box_size(fig1, extrlocy, c):
+def select_extraction_box_size(fig1, extrlocy, c, region_to_mark = 'spectrum'): #you should never enter this function if mode = passive
     '''Interactively select the box size of an extraction or background region '''
-    print 'Select extraction box'
+    print 'Select extraction box for %s' %(region_to_mark)
     keep_flag = 'n'
     while keep_flag == 'n':
         coords = fig1.ginput(n = 2, timeout = -1)
@@ -195,15 +196,15 @@ def select_extraction_box_size(fig1, extrlocy, c):
             pyplot.draw()
     return half_box*2
 
-def extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, backcorr_option, bksmode_option):
+def extract_spectrum(input, extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, c, backcorr_option, bksmode_option):
     '''Extract the spectrum using the calstis task x1d '''
-    if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))))):
-        os.remove(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i.fits' %(int(extrlocy)))))
+    if os.path.exists(os.path.join(os.getcwd(), input.filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))))):
+        os.remove(os.path.join(os.getcwd(), input.filename.replace('.fits', '_loc%i.fits' %(int(extrlocy)))))
         
-    iraf.stsdas.hst_calib.stis.x1d(filename.replace('.fits', 'sub.fits'), output = filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))), \
+    iraf.stsdas.hst_calib.stis.x1d(input.filename.replace('.fits', 'sub.fits'), output = input.filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))), \
                                        a2center = extrlocy + 1, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
                                        bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option, bksmode = bksmode_option)  #a2center is 1 indexed
-    add_background_into_x1d(filename, fit, extrlocy)
+    add_background_into_x1d(input.filename, fit, extrlocy)
 
 def add_background_into_x1d(filename, fit, extrlocy):
     '''Add the fitted background back into the gross and background columns of the extracted spectrum'''
@@ -237,14 +238,28 @@ def confirm_extraction_location(filename, img, extrlocy):
     raw_input('Press enter to close and continue')
     pyplot.close(fig3)
     
-    
+def interact_w_user(mode, default = None, message = None):
+    if (mode == 'interactive'): 
+        if message is None:
+            print 'You must enter a message if mode is interactive'
+            sys.exit() 
+        else:
+            result = raw_input(message)
+            return result
+    else:
+        return default
+
+class input_object:
+    def __init__(self, filename, mode):
+        self.filename = filename
+        self.mode = mode
+
 if __name__ == "__main__":
 
     #Define colors for extracting more than one spectrum
     colors = ['r', 'g', 'c', 'k', 'm']
 
     pyplot.ion()  #turn plotting on 
-    #
     if os.path.exists('/grp/hst/cdbs/oref'):
         os.environ['oref'] = '/grp/hst/cdbs/oref/' #set oref environment variable to point to reference file location
     else:
@@ -253,7 +268,7 @@ if __name__ == "__main__":
     parser.add_option('--backcorr', dest = 'backcorr', help = 'Enter perform (default) or omit to perform or omit the background subtraction in CalSTIS x1d', default = 'perform')
     parser.add_option('--ncol', dest = 'num_cols', type = 'float', help = 'Number of columns summed when examining the cross-dispersion profile', default = 50)
     parser.add_option('--backsmooth', dest = 'bksmode', help = 'Background smoothing mode: off, median, average', default = 'off')
-    
+    parser.add_option('--mode', dest = 'mode', help = 'Run program interactively or not - options: interactive, passive', default = 'interactive')
     (options, args) = parser.parse_args()
     
     #read in command line arguments
@@ -262,9 +277,12 @@ if __name__ == "__main__":
         ext = int(sys.argv[2])
     except:
         ext = 1
+
+    input = input_object(filename, options.mode)
+
     cenwave = pyfits.getval(filename, 'cenwave', 0)
     if os.path.exists(os.path.join(os.getcwd(), filename.replace('.fits','_c%i_background_regions.txt'%(cenwave)))):
-        find_background_flag = raw_input('Select the background regions? y, (n) ') #read background from file or interactively define?
+        find_background_flag = interact_w_user(input.mode, default = 'n', message = 'Select the background regions? y, (n) ')
     else:
         find_background_flag = 'y'
 
@@ -282,12 +300,12 @@ if __name__ == "__main__":
     ax1.set_ylim(np.min(collapsed_img), np.max(collapsed_img))
     if find_background_flag == 'y':  #interactvely define background
         #Display 2D image
-        disp_2d = raw_input('Would you like to display the 2D image? y, (n) ')
+        disp_2d = interact_w_user(input.mode, default = 'n', message = 'Would you like to display the 2D image? y, (n) ')
         if disp_2d == 'y':
             fig2 = pyplot.figure(2)
             ax2 = fig2.add_subplot(1,1,1)
             ax2.imshow(np.rot90(np.log10(img)), interpolation = 'nearest', origin = 'lower')
-        raw_input('Zoom in on desired spectrum location. Press Enter when finished')
+        interact_w_user(input.mode, message = 'Zoom in on desired spectrum location. Press Enter when finished')
         
         #Define background regions in cross dispersion profile
         fig1, ax1, background_pix, background_collapsed = get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwave)
@@ -308,15 +326,15 @@ if __name__ == "__main__":
     ylims = ax1.get_ylim()
     
     #Fit a polynomial to the background
-    ax1_temp, fit = fit_background(fig1, ax1, background_pix, background_collapsed, pix_num)
+    ax1_temp, fit = fit_background(input, fig1, ax1, background_pix, background_collapsed, pix_num)
     while ax1_temp is None:
-        fig1, ax1, background_pix, background_collapsed = get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwave, first_time = False)
-        ax1_temp, fit = fit_background(fig1, ax1, background_pix, background_collapsed, pix_num)
+        fig1, ax1, background_pix, background_collapsed = get_background_locations(input, fig1, ax1, pix_num, collapsed_img, cenwave, first_time = False)
+        ax1_temp, fit = fit_background(input, fig1, ax1, background_pix, background_collapsed, pix_num)
     ax1 = ax1_temp
     #Subtract the background (in the cross dispersion direction) from the image
     subtracted_img = subtract_2D_cross_disp_background(img, fit)
     #Write a temporary file of the subtracted image
-    write_temp_subtracted_file(subtracted_img, filename)
+    write_temp_subtracted_file(input, subtracted_img)
     #collapse the subtracted image in the cross-dispersion direction
     sub_collapsed_img = collapse_spectrum(subtracted_img, options.num_cols)
     ax1.cla()
@@ -329,28 +347,28 @@ if __name__ == "__main__":
         ax1.set_xlim(xlims[0], xlims[1])
         ax1.set_ylim(ylims[0], ylims[1])
         pyplot.draw()
-        print 'Identify spectrum location'
+        #print '---------Identify spectrum location---------'
         extrlocy = select_extraction_location(fig1, c)
-        print 'Identify extraction box'
+        #print '---------Identify extraction box---------'
         extract_box_size = select_extraction_box_size(fig1, extrlocy, c)
-        print 'Identify left background center'
-        background_loc1 = select_extraction_location(fig1, c)
-        print 'Idnetify left background box'
-        background_size1 = select_extraction_box_size(fig1, background_loc1, c)
-        print 'Identify right background center'
-        background_loc2 = select_extraction_location(fig1, c)
-        print 'Identify right background box'
-        background_size2 = select_extraction_box_size(fig1, background_loc2, c)
+        #print '---------Identify left background center---------'
+        background_loc1 = select_extraction_location(fig1, c, region_to_mark = 'center of first background region')
+        #print '---------Idnetify left background box---------'
+        background_size1 = select_extraction_box_size(fig1, background_loc1, c, region_to_mark = 'first background region')
+        #print '---------Identify right background center---------'
+        background_loc2 = select_extraction_location(fig1, c, region_to_mark = 'second background region')
+        #print '---------Identify right background box---------'
+        background_size2 = select_extraction_box_size(fig1, background_loc2, c, region_to_mark = 'second background region')
 
-        extract_spectrum(extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, filename, c, options.backcorr, options.bksmode)
-        confirm_flag = raw_input('Would you like to confirm the location of your extraction on a 2D image? (y), n ')
+        extract_spectrum(input, extrlocy, extract_box_size, background_loc1, background_size1, background_loc2, background_size2, c, options.backcorr, options.bksmode)
+        confirm_flag = interact_w_user(input.mode, message = 'Would you like to confirm the location of your extraction on a 2D image? (y), n ', default = 'n')
         if confirm_flag != 'n':
-            confirm_extraction_location(filename, img, extrlocy)
-        another_spectrum_flag = raw_input('Extract another spectrum? ')
+            confirm_extraction_location(input.filename, img, extrlocy)
+        another_spectrum_flag = interact_w_user(input.mode, message = 'Extract another spectrum? ', default = 'n')
         i = i + 1
-    os.remove(filename.replace('.fits', 'sub.fits'))
+    os.remove(input.filename.replace('.fits', 'sub.fits'))
 
 
 
 #Add log file which records degree polynomial fit, extraction locations and box sizes
-
+#To make mode = passive work, have to add way to select extraction and background location and regions
