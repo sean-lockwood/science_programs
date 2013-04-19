@@ -138,11 +138,14 @@ def id_cr(img, kernel_size = 9, thresh = 300):
 	return img
 
 def cr_reject(new_img1, new_img2):
+	#Identify cosmic rays
 	cr_id_img1 = id_cr(new_img1)
 	cr_id_img2 = id_cr(new_img2)
+	#If a good pixel exists in one image, replace the bad pixel with the good pixel
 	img1_replace_indx = np.where((cr_id_img1 == -999) & (cr_id_img2 != -999))
 	cr_id_img1[img1_replace_indx] = cr_id_img2[img1_replace_indx]
 	img2_replace_indx = np.where((cr_id_img2 == -999) & (cr_id_img1 != -999))
+	#Set pixels with are bad in both images to 0
 	cr_id_img1[cr_id_img1 == -999] = 0.0
 	cr_id_img2[cr_id_img2 == -999] = 0.0
 	new_img = cr_id_img1 + cr_id_img2
@@ -221,8 +224,14 @@ if __name__ == "__main__":
 
     idir = '/Users/bostroem/science/12465_otfr20121109/ccd/'
     os.chdir(idir)
-    flist = glob.glob('obrc02*_flt.fits')#+glob.glob('ob???????_flt.fits')
+    flist = glob.glob('obrc09*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
+
+
+#obrc01, obrc07: 3936
+#obrc02, obrc08: 4451
+#obrc03, obrc09: 4706
+#obzk01: 4194
 
