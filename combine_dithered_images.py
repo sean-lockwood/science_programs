@@ -2,7 +2,10 @@ import pyfits
 import numpy as np
 import os
 import glob
-import c_correlate 
+import c_correlate
+import scipy
+from scipy import signal
+from scipy.signal import medfilt 
 
 from optparse import OptionParser
 
@@ -125,10 +128,34 @@ def combine_dithered_images(dec_dict, targ_dec, use_hdr_offset):
  
     return new_img
 
+def id_cr(img, kernel_size = 9, thresh = 300):
+	filt_img = img.copy()
+	for irow in range(np.shape(img)[0]):
+		filt_img[irow, :] = medfilt(filt_img[irow, :], kernel_size = kernel_size)
+	cr_pix = np.where((img - filt_img) > 300)
+	img[cr_pix] = -999
+	#What should I do with the error array
+	return img
+
+def cr_reject(new_img1, new_img2):
+	cr_id_img1 = id_cr(new_img1)
+	cr_id_img2 = id_cr(new_img2)
+	img1_replace_indx = np.where((cr_id_img1 == -999) & (cr_id_img2 != -999))
+	cr_id_img1[img1_replace_indx] = cr_id_img2[img1_replace_indx]
+	img2_replace_indx = np.where((cr_id_img2 == -999) & (cr_id_img1 != -999))
+	cr_id_img1[cr_id_img1 == -999] = 0.0
+	cr_id_img2[cr_id_img2 == -999] = 0.0
+	new_img = cr_id_img1 + cr_id_img2
+	return new_img
+
 def create_new_combined_arrays(top_img, bottom_img, top_err, bottom_err, top_dq, bottom_dq, start1, end1, start2, end2):
-        new_img = np.zeros((end2, end1))
-        new_img[start1:end1, :] = new_img[start1:end1, :] + bottom_img
-        new_img[start2:end2, :] = new_img[start2:end2, :]+  top_img
+        new_img1 = np.zeros((end2, end1))
+        new_img2 = np.zeros((end2, end1))
+        new_img1[start1:end1, :] = new_img1[start1:end1, :] + bottom_img
+        new_img2[start2:end2, :] = new_img2[start2:end2, :]+  top_img
+		#cosmic ray reject images
+        new_img = cr_reject(new_img1, new_img2)
+		#Average images
         new_img[start2:end1, :] = new_img[start2:end1, :] / 2.0
 
         new_err1 = np.zeros((end2, end1))
@@ -184,17 +211,18 @@ if __name__ == "__main__":
     parser.add_option('--UseHeader', dest = 'use_hdr_offset', action = 'store_true', help = 'Set the dithered offset in pixels', default = False)
     (options, args) = parser.parse_args()
     #for the FUV data
-    idir = '/user/bostroem/science/12465_otfr20120425/mama/'
+    #idir = '/user/bostroem/science/12465_otfr20120425/mama/'
+    ##idir = '/Users/bostroem/science/12465_otfr20120425/mama/'
+    ##os.chdir(idir)
+    ##flist = glob.glob('obrc04???_flt.fits')+glob.glob('obrc05???_flt.fits')
+    ##dec_dict = make_declination_dict(flist)
+    ##for targ_dec in dec_dict.keys():
+    ##    combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
+
+    idir = '/Users/bostroem/science/12465_otfr20121109/ccd/'
     os.chdir(idir)
-    flist = glob.glob('obrc04???_flt.fits')+glob.glob('obrc05???_flt.fits')
+    flist = glob.glob('obrc02*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-
-    #idir = '/Users/bostroem/science/12465_otfr20121109/ccd/'
-    #os.chdir(idir)
-    #flist = glob.glob('ob???????_flt.fits')+glob.glob('ob???????_flt.fits')
-    #dec_dict = make_declination_dict(flist)
-    #for targ_dec in dec_dict.keys():
-    #    combine_dithered_images(dec_dict, targ_dec)
 
