@@ -58,10 +58,10 @@ def get_background_locations(input, fig1, ax1, pix_num, collapsed_img, cenwave, 
             if remove_flag == 'n':
                 break
             try:
-                remove_indx = interact_w_user(input.mode, message = 'Enter the number of the region you wish to remove: ', default = 1) #you should never enter this loop if mode = passive
+                remove_indx = int(interact_w_user(input.mode, message = 'Enter the number of the region you wish to remove: ', default = 1)) #you should never enter this loop if mode = passive
             except ValueError:
                 print 'You must enter something that can be converted into an integer'
-                remove_indx = interact_w_user(input.mode, message = 'Enter the number of the region you wish to remove: ', default = 1) #you should never enter this loop if mode = passive
+                remove_indx = int(interact_w_user(input.mode, message = 'Enter the number of the region you wish to remove: ', default = 1)) #you should never enter this loop if mode = passive
             #remove indx from start_indx and end_indx
             start_indx = np.append(start_indx[0:remove_indx], start_indx[remove_indx+1:])
             end_indx = np.append(end_indx[0:remove_indx], end_indx[remove_indx+1:])
@@ -91,7 +91,8 @@ def get_background_locations(input, fig1, ax1, pix_num, collapsed_img, cenwave, 
         if keep_flag != 'n':
             ofile.write('%i\t %i \n' %(int(math.floor(temp_region[0][0])),int(math.ceil(temp_region[1][0]))))
             background_collapsed = np.append(background_collapsed, collapsed_img[int(math.floor(temp_region[0][0])):int(math.ceil(temp_region[1][0]))+1])
-            background_pix = np.append(background_pix, pix_num[int(math.floor(temp_region[0][0])):int(math.ceil(temp_region[1][0]))+1])
+            background_pix = np.append(background_pix, pix_num[int(math.floor(temp_region[0][0])):int(math.ceil(temp_region[1][0]))+1]) #This only works if you select L to R, I should fix that
+            #pdb.set_trace()
         else:
             l1[0].set_visible(False)
             pyplot.draw()
@@ -100,6 +101,7 @@ def get_background_locations(input, fig1, ax1, pix_num, collapsed_img, cenwave, 
     sort_indx = np.argsort(background_pix)
     background_pix = background_pix[sort_indx]
     background_collapsed = background_collapsed[sort_indx]
+    #pdb.set_trace()
     try:  #remove any residual background line labeling
         for iline, itxt in zip(l2, l3):
             iline[0].set_visible(False)
@@ -308,8 +310,7 @@ if __name__ == "__main__":
         interact_w_user(input.mode, message = 'Zoom in on desired spectrum location. Press Enter when finished')
         
         #Define background regions in cross dispersion profile
-        fig1, ax1, background_pix, background_collapsed = get_background_locations(fig1, ax1, pix_num, collapsed_img, filename, cenwave)
-
+        fig1, ax1, background_pix, background_collapsed = get_background_locations(input, fig1, ax1, pix_num, collapsed_img, cenwave)
     else:  #read background regions from file
         coords = np.genfromtxt(filename.replace('.fits','_c%i_background_regions.txt'%(cenwave)))
         background_collapsed = np.empty((0,))
