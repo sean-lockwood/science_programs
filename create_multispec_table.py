@@ -18,7 +18,8 @@ def get_wfc3_cts(wfc3_x, wfc3_y, wfc3_mag):
                     pdb.set_trace()
             if row_num == 5: #append the counts
                 cts.append(float(iline.split()[1]))
-    return cts
+    return np.array(cts)
+
 
 def get_wfc3_coords(wfc3_mag):
     ofile = open(wfc3_mag, 'r')
@@ -32,13 +33,13 @@ def get_wfc3_coords(wfc3_mag):
                 row_num = 0
             else:
                 row_num += 1
-            if row_num == 1:  #Check that you are matching the correct star to the correct counts
+            if row_num == 1:  
                 wfc3_x.append(float(iline.split()[0])) 
                 wfc3_y.append(float(iline.split()[1]))
-            if row_num == 5: #append the counts
+            if row_num == 4: #append the counts  #This number is affected by the number of apertures you look at
                 cts.append(float(iline.split()[1]))
-
-    return wfc3_x, wfc3_y, cts
+                #pdb.set_trace()
+    return np.array(wfc3_x), np.array(wfc3_y), np.array(cts)
 
 
 def get_slit_num(stis_x):
@@ -76,7 +77,7 @@ def write_ds9_reg_file(x, y, text = [], filename = 'ds9.reg'):
             ofile.write('point(%f,%f) # point=cross text={%s} \n' %(ix, iy, str(it)))
     else:  
         for ix, iy in zip(x, y):
-            ofile.write('point(%f,%f) # point=cross' %(ix, iy))
+            ofile.write('point(%f,%f) # point=cross \n' %(ix, iy))
     ofile.close()
 
 
@@ -103,29 +104,53 @@ def create_table_from_geofile_analysis():
     write_ds9_reg_file(wfc3_x + np.median(stis_x - wfc3_x), stis_y_corr, slit_num)
     write_output_file(wfc3_x, wfc3_y, cts, slit_num, stis_x_corr, stis_y_corr)
 
+def filter_duplicates(wfc3_x, wfc3_y, wx, wy, i):
+    r = np.sqrt((wfc3_x - wx)**2 + (wfc3_y - wy)**2)
+    dup_indx = np.where(r[:i] < 1.0)
+    if len(dup_indx[0]) == 0:  #No Duplicates
+        return True
+    else:
+        return False
+
+
 def write_output_file(wfc3_x, wfc3_y, cts, slit_num, stis_x_corr, stis_y_corr, filename = 'multispec_input.txt', maxy = 1036):
     #write output
     ofile = open(filename, 'w')
     ofile.write('%10s    %10s    %10s    %8s    %10s    %10s \n' %('wfc3_x', 'wfc3_y', 'wfc3_cts', 'slit_num', 'stis_x', 'stis_y'))  
-    for wx, wy, wct, sn, sx, sy in zip(wfc3_x, wfc3_y, cts, slit_num, stis_x_corr, stis_y_corr):
-        if (np.abs(sx) <= 4.0) & ((sy >= 0.0) & (sy <= maxy)) & ((sn >= 1) & (sn <= 17)):
-            ofile.write('%10.6f    %10.6f    %10.3f    %8i    %10.6f    %10.6f \n' %(wx, wy, wct, sn, sx, sy))
+    for i, wx, wy, wct, sn, sx, sy in zip(range(len(wfc3_x)), wfc3_x, wfc3_y, cts, slit_num, stis_x_corr, stis_y_corr):
+        #print i
+        #if (np.abs(sx) <= 4.0) & ((sy >= 0.0) & (sy <= maxy)) & ((sn >= 1) & (sn <= 17)):
+        if ((sy >= 0.0) & (sy <= maxy)) & ((sn >= 1) & (sn <= 17)):
+            if filter_duplicates(wfc3_x, wfc3_y, wx, wy, i) is True:
+                ofile.write('%10.6f    %10.6f    %10.3f    %8i    %10.6f    %10.6f \n' %(wx, wy, wct, sn, sx, sy))
+            else:
+                print 'duplicate', wx, wy, sx, sy, sn
+        else:
+            #print 'out of bounds', wx, wy, sx, sy, sn
+            if ((sn < 1) | (sn > 17)): print 'slit out of bound', wx, wy, sx, sy, sn
+            if ((sy < 0.0) | (sy > maxy)): print 'y is out of bounds', wx, wy, sx, sy, sn
     ofile.close()
 
+def create_ds9_reg_for_source_list(filename, x_corr):
+    wfc3_x, wfc3_y, slit_num, stis_y = np.genfromtxt(filename, usecols = (0, 1, 3, 5), skiprows = 1, unpack = True)
+    write_ds9_reg_file(wfc3_x, wfc3_y, filename = '/user/bostroem/science/images/astrodrizzle_wfc3/final/add_more_stars/wfc3_unfiltered_source_list2.reg')
+    stis_x = wfc3_x + x_corr
+    write_ds9_reg_file(wfc3_x, wfc3_y, filename = '/user/bostroem/science/images/astrodrizzle_wfc3/final/add_more_stars/wfc3_source_list.reg')
+    write_ds9_reg_file(stis_x, stis_y, slit_num, filename = '/user/bostroem/science/images/astrodrizzle_wfc3/final/add_more_stars/stis_source_list.reg')
+
 def create_table_from_source_list():
-    wfc3_mag = '/user/bostroem/science/images/astrodrizzle_wfc3/final/add_more_stars/phot_output_wfc3_sourcelist.mag'
+    wfc3_mag = '/user/bostroem/science/images/astrodrizzle_wfc3/final/add_more_stars/phot_output_wfc3_combined_sourcelist2.mag'
     wfc3_x, wfc3_y, cts = get_wfc3_coords(wfc3_mag)
+    #wfc3_idl =  '/user/bostroem/science/images/astrodrizzle_wfc3/final/add_more_stars/idl_aper_output_test5.txt'
+    #wfc3_x, wfc3_y, cts = np.genfromtxt(wfc3_idl, unpack = True)
+
     x_corr, y_corr = calc_wfc3_stis_shift()
     stis_x_corr, slit_num = calc_x_offset_wrt_slit_center(wfc3_x, x_corr)
     stis_y_corr = calc_y_stis_wrt_img_center(wfc3_y, y_corr, slit_num)
     write_output_file(wfc3_x, wfc3_y, cts, slit_num, stis_x_corr, stis_y_corr, filename = '/user/bostroem/science/images/astrodrizzle_wfc3/final/add_more_stars/multispec_input_source_list.txt')
     create_ds9_reg_for_source_list('multispec_input_source_list.txt', x_corr)
 
-def create_ds9_reg_for_source_list(filename, x_corr):
-    wfc3_x, wfc3_y, slit_num, stis_y = np.genfromtxt(filename, usecols = (0, 1, 3, 5), skiprows = 1, unpack = True)
-    stis_x = wfc3_x + x_corr
-    write_ds9_reg_file(wfc3_x, wfc3_y, filename = '/user/bostroem/science/images/astrodrizzle_wfc3/final/add_more_stars/wfc3_source_list.reg')
-    write_ds9_reg_file(stis_x, stis_y, slit_num, filename = '/user/bostroem/science/images/astrodrizzle_wfc3/final/add_more_stars/stis_source_list.reg')
+
                                                     
 
 if __name__ == "__main__":
