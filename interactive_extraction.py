@@ -311,6 +311,7 @@ if __name__ == "__main__":
         
         #Define background regions in cross dispersion profile
         fig1, ax1, background_pix, background_collapsed = get_background_locations(input, fig1, ax1, pix_num, collapsed_img, cenwave)
+
     else:  #read background regions from file
         coords = np.genfromtxt(filename.replace('.fits','_c%i_background_regions.txt'%(cenwave)))
         background_collapsed = np.empty((0,))
