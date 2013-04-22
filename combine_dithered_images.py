@@ -184,17 +184,17 @@ if __name__ == "__main__":
     parser.add_option('--UseHeader', dest = 'use_hdr_offset', action = 'store_true', help = 'Set the dithered offset in pixels', default = False)
     (options, args) = parser.parse_args()
     #for the FUV data
-    idir = '/user/bostroem/science/12465_otfr20120425/mama/'
+    #idir = '/user/bostroem/science/12465_otfr20120425/mama/'
+    #os.chdir(idir)
+    #flist = glob.glob('obrc04???_flt.fits')+glob.glob('obrc05???_flt.fits')
+    #dec_dict = make_declination_dict(flist)
+    #for targ_dec in dec_dict.keys():
+    #    combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
+
+    idir = '/user/bostroem/science/12465_otfr20121109/ccd/'
     os.chdir(idir)
-    flist = glob.glob('obrc04???_flt.fits')+glob.glob('obrc05???_flt.fits')
+    flist = glob.glob('obrc02*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-
-    #idir = '/Users/bostroem/science/12465_otfr20121109/ccd/'
-    #os.chdir(idir)
-    #flist = glob.glob('ob???????_flt.fits')+glob.glob('ob???????_flt.fits')
-    #dec_dict = make_declination_dict(flist)
-    #for targ_dec in dec_dict.keys():
-    #    combine_dithered_images(dec_dict, targ_dec)
 
