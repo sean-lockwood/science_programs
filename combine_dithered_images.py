@@ -142,9 +142,9 @@ def id_cr(img, kernel_size = 9, thresh = 300):
     #What should I do with the error array
     pyplot.imshow(img, interpolation = 'nearest', cmap = 'bone', vmin = 0, vmax = 1000)
     x = np.where(img == -999)
-    pyplot.plot(x[1], x[0], 'r.')
-    pdb.set_trace()
-    pyplot.close()
+    #pyplot.plot(x[1], x[0], 'r.')
+    #pdb.set_trace()
+    #pyplot.close()
 
     return img
 
