@@ -36,6 +36,8 @@ def normalize_spectrum(wl, net, kernel_size = 201):
     interpol_back = np.interp(wl, background_wl, background_net)
     continuum = medfilt(interpol_back, kernel_size = 69)
     ax.plot(wl, continuum, 'c', lw = 2)
+    ax.plot(wl, np.polyval(np.polyfit(background_wl, background_net, 4), wl), 'r', lw = 2)
+    pyplot.draw()
     return wl, net/continuum, continuum
 
 def apply_redshift(line_dict, v):
@@ -50,13 +52,17 @@ def mark_spectrum(line_dict, ax):
     for label, value in zip(line_dict['name'], line_dict['redshift_wavelength']):
         ax.axvline(value)
         ymin, ymax = ax.get_ylim()
-        t = ax.text(value - 5, ymax - ymax/5.0, label, fontweight = 'bold', rotation = 'vertical')
+        t = ax.text(value - 8, ax.get_ylim()[1], label, horizontalalignment = 'right',  rotation = 'vertical', alpha = 0.3)
         #t.set_fontweight('bold')
         #t.set_backgroundcolor('w')
         #t.set_rotation('vertical')
     return ax
         
 
-line_dict = {'name': ['N IV 3480', 'Si IV 4089', 'Si IV 4116', 'N IV 4058', 'He II 4200', 'He I 4471', 'He II 4542', 'N III 4636', 'N III 4642', 'He II 4686'], \
-            'rest_wavelength': [3480, 4089, 4116, 4058, 4200, 4471, 4542, 4636, 4642, 4686]}
+line_dict = {'name': ['N IV 3480', 'Si IV 4089', 'Si IV 4116', 'N IV 4058', 'He II 4200', 'He I 4471', 'He II 4542', 'N III 4636', 'N III 4642', 'He II 4686', 'H-Beta', 'H-Gamma', 'H-Delta'], \
+            'rest_wavelength': [3480, 4089, 4116, 4058, 4200, 4471, 4542, 4636, 4642, 4686, 4861.33, 4340.47, 4101.74]}
+
+H-Beta 4861.33
+H-Gamma 4340.47
+H-Delta 4101.74 
 
