@@ -6,7 +6,11 @@ import c_correlate
 import scipy
 from scipy import signal
 from scipy.signal import medfilt 
+from scipy import stats
+from scipy.stats import tstd
 
+import pdb
+from matplotlib import pyplot
 from optparse import OptionParser
 
 #!!!!!!!!!!!!!!!!!!!!!!
@@ -132,9 +136,16 @@ def id_cr(img, kernel_size = 9, thresh = 300):
     filt_img = img.copy()
     for irow in range(np.shape(img)[0]):
         filt_img[irow, :] = medfilt(filt_img[irow, :], kernel_size = kernel_size)
-    cr_pix = np.where((img - filt_img) > 300)
-    img[cr_pix] = -999
+        stdev = tstd(img[irow, :])
+        cr_pix = np.where((img[irow, :] - filt_img[irow, :]) > 2.0*stdev)
+        img[irow, cr_pix] = -999
     #What should I do with the error array
+    pyplot.imshow(img, interpolation = 'nearest', cmap = 'bone', vmin = 0, vmax = 1000)
+    x = np.where(img == -999)
+    #pyplot.plot(x[1], x[0], 'r.')
+    #pdb.set_trace()
+    #pyplot.close()
+
     return img
 
 def cr_reject(new_img1, new_img2):
@@ -215,6 +226,7 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
     #for the FUV data
     #idir = '/user/bostroem/science/12465_otfr20120425/mama/'
+
     ##idir = '/Users/bostroem/science/12465_otfr20120425/mama/'
     ##os.chdir(idir)
     ##flist = glob.glob('obrc04???_flt.fits')+glob.glob('obrc05???_flt.fits')
@@ -222,7 +234,8 @@ if __name__ == "__main__":
     ##for targ_dec in dec_dict.keys():
     ##    combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
 
-    idir = '/Users/bostroem/science/12465_otfr20121109/ccd/'
+    #idir = '/Users/bostroem/science/12465_otfr20121109/ccd/'
+    idir = '/user/bostroem/science/12465_otfr20121109/ccd/'
     os.chdir(idir)
     flist = glob.glob('obrc09*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
@@ -232,6 +245,6 @@ if __name__ == "__main__":
 
     #obrc01, obrc07: 3936
     #obrc02, obrc08: 4451
-#obrc03, obrc09: 4706
-#obzk01: 4194
+    #obrc03, obrc09: 4706
+    #obzk01: 4194
 
