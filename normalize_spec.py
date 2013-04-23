@@ -5,11 +5,14 @@ from scipy.signal import medfilt
 from matplotlib import pyplot
 import numpy as np
 import pdb
+from astropy import constants
 
 def normalize_spectrum(wl, net, kernel_size = 201):
+    fig = pyplot.figure()
+    ax = fig.add_subplot(1,1,1)
     wl = wl.flatten()
     net = net.flatten()
-    pyplot.plot(wl, net, 'b')
+    ax.plot(wl, net, 'b')
     background_wl = np.empty((0,))
     background_net = np.empty((0,))
     raw_input('Zoom in on spectrum and press enter to continue ')
@@ -32,8 +35,28 @@ def normalize_spectrum(wl, net, kernel_size = 201):
 
     interpol_back = np.interp(wl, background_wl, background_net)
     continuum = medfilt(interpol_back, kernel_size = 69)
-    pyplot.plot(wl, continuum, 'c')
-    return wl, net - continuum, continuum
+    ax.plot(wl, continuum, 'c', lw = 2)
+    return wl, net/continuum, continuum
 
+def apply_redshift(line_dict, v):
+    #velocity should be in m/s
+    redshift_list = []
+    for iline in line_dict['rest_wavelength']:
+        redshift_list.append(iline* (1.0 + v/constants.c.value))
+    line_dict['redshift_wavelength'] = redshift_list
+    return line_dict
 
+def mark_spectrum(line_dict, ax):
+    for label, value in zip(line_dict['name'], line_dict['redshift_wavelength']):
+        ax.axvline(value)
+        ymin, ymax = ax.get_ylim()
+        t = ax.text(value - 5, ymax - ymax/5.0, label, fontweight = 'bold', rotation = 'vertical')
+        #t.set_fontweight('bold')
+        #t.set_backgroundcolor('w')
+        #t.set_rotation('vertical')
+    return ax
         
+
+line_dict = {'name': ['N IV 3480', 'Si IV 4089', 'Si IV 4116', 'N IV 4058', 'He II 4200', 'He I 4471', 'He II 4542', 'N III 4636', 'N III 4642', 'He II 4686'], \
+            'rest_wavelength': [3480, 4089, 4116, 4058, 4200, 4471, 4542, 4636, 4642, 4686]}
+

@@ -145,6 +145,7 @@ def id_cr(img, kernel_size = 9, thresh = 300):
     pyplot.plot(x[1], x[0], 'r.')
     pdb.set_trace()
     pyplot.close()
+
     return img
 
 def cr_reject(new_img1, new_img2):
@@ -166,9 +167,9 @@ def create_new_combined_arrays(top_img, bottom_img, top_err, bottom_err, top_dq,
         new_img2 = np.zeros((end2, end1))
         new_img1[start1:end1, :] = new_img1[start1:end1, :] + bottom_img
         new_img2[start2:end2, :] = new_img2[start2:end2, :]+  top_img
-		#cosmic ray reject images
+        #cosmic ray reject images
         new_img = cr_reject(new_img1, new_img2)
-		#Average images
+        #Average images
         new_img[start2:end1, :] = new_img[start2:end1, :] / 2.0
 
         new_err1 = np.zeros((end2, end1))
@@ -241,8 +242,9 @@ if __name__ == "__main__":
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
 
-#obrc01, obrc07: 3936
-#obrc02, obrc08: 4451
+
+    #obrc01, obrc07: 3936
+    #obrc02, obrc08: 4451
 #obrc03, obrc09: 4706
 #obzk01: 4194
 
