@@ -6,7 +6,11 @@ import c_correlate
 import scipy
 from scipy import signal
 from scipy.signal import medfilt 
+from scipy import stats
+from scipy.stats import tstd
 
+import pdb
+from matplotlib import pyplot
 from optparse import OptionParser
 
 #!!!!!!!!!!!!!!!!!!!!!!
@@ -129,27 +133,33 @@ def combine_dithered_images(dec_dict, targ_dec, use_hdr_offset):
     return new_img
 
 def id_cr(img, kernel_size = 9, thresh = 300):
-	filt_img = img.copy()
-	for irow in range(np.shape(img)[0]):
-		filt_img[irow, :] = medfilt(filt_img[irow, :], kernel_size = kernel_size)
-	cr_pix = np.where((img - filt_img) > 300)
-	img[cr_pix] = -999
-	#What should I do with the error array
-	return img
+    filt_img = img.copy()
+    for irow in range(np.shape(img)[0]):
+        filt_img[irow, :] = medfilt(filt_img[irow, :], kernel_size = kernel_size)
+        stdev = tstd(img[irow, :])
+        cr_pix = np.where((img[irow, :] - filt_img[irow, :]) > 2.0*stdev)
+        img[irow, cr_pix] = -999
+    #What should I do with the error array
+    pyplot.imshow(img, interpolation = 'nearest', cmap = 'bone', vmin = 0, vmax = 1000)
+    x = np.where(img == -999)
+    pyplot.plot(x[1], x[0], 'r.')
+    pdb.set_trace()
+    pyplot.close()
+    return img
 
 def cr_reject(new_img1, new_img2):
-	#Identify cosmic rays
-	cr_id_img1 = id_cr(new_img1)
-	cr_id_img2 = id_cr(new_img2)
-	#If a good pixel exists in one image, replace the bad pixel with the good pixel
-	img1_replace_indx = np.where((cr_id_img1 == -999) & (cr_id_img2 != -999))
-	cr_id_img1[img1_replace_indx] = cr_id_img2[img1_replace_indx]
-	img2_replace_indx = np.where((cr_id_img2 == -999) & (cr_id_img1 != -999))
-	#Set pixels with are bad in both images to 0
-	cr_id_img1[cr_id_img1 == -999] = 0.0
-	cr_id_img2[cr_id_img2 == -999] = 0.0
-	new_img = cr_id_img1 + cr_id_img2
-	return new_img
+    #Identify cosmic rays
+    cr_id_img1 = id_cr(new_img1)
+    cr_id_img2 = id_cr(new_img2)
+    #If a good pixel exists in one image, replace the bad pixel with the good pixel
+    img1_replace_indx = np.where((cr_id_img1 == -999) & (cr_id_img2 != -999))
+    cr_id_img1[img1_replace_indx] = cr_id_img2[img1_replace_indx]
+    img2_replace_indx = np.where((cr_id_img2 == -999) & (cr_id_img1 != -999))
+    #Set pixels with are bad in both images to 0
+    cr_id_img1[cr_id_img1 == -999] = 0.0
+    cr_id_img2[cr_id_img2 == -999] = 0.0
+    new_img = cr_id_img1 + cr_id_img2
+    return new_img
 
 def create_new_combined_arrays(top_img, bottom_img, top_err, bottom_err, top_dq, bottom_dq, start1, end1, start2, end2):
         new_img1 = np.zeros((end2, end1))
@@ -223,7 +233,8 @@ if __name__ == "__main__":
     ##for targ_dec in dec_dict.keys():
     ##    combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
 
-    idir = '/Users/bostroem/science/12465_otfr20121109/ccd/'
+    #idir = '/Users/bostroem/science/12465_otfr20121109/ccd/'
+    idir = '/user/bostroem/science/12465_otfr20121109/ccd/'
     os.chdir(idir)
     flist = glob.glob('obrc09*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
