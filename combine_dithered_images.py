@@ -134,14 +134,15 @@ def combine_dithered_images(dec_dict, targ_dec, use_hdr_offset):
 
 def id_cr(img, kernel_size = 9, thresh = 300):
     filt_img = img.copy()
+    l1 = pyplot.imshow(img, interpolation = 'nearest', cmap = 'bone', vmin = 0, vmax = 1000)
     for irow in range(np.shape(img)[0]):
         filt_img[irow, :] = medfilt(filt_img[irow, :], kernel_size = kernel_size)
         stdev = tstd(img[irow, :])
-        cr_pix = np.where((img[irow, :] - filt_img[irow, :]) > 2.0*stdev)
+        cr_pix = np.where(abs((img[irow, :] - filt_img[irow, :])) > stdev)
         img[irow, cr_pix] = -999
     #What should I do with the error array
-    pyplot.imshow(img, interpolation = 'nearest', cmap = 'bone', vmin = 0, vmax = 1000)
     x = np.where(img == -999)
+    #print np.shape(x)
     #pyplot.plot(x[1], x[0], 'r.')
     #pdb.set_trace()
     #pyplot.close()
