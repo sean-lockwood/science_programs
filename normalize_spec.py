@@ -27,15 +27,15 @@ def normalize_spectrum(wl, net, kernel_size = 201):
         background_wl = np.append(background_wl, wl[background_indx])
         background_net = np.append(background_net, net[background_indx])
         pyplot.plot([wl[background_indx[0][0]], wl[background_indx[0][-1]]], [net[background_indx[0][0]], net[background_indx[0][-1]]], 'm--|', lw = 3)
+
         select_another_region = raw_input('Would you like to select another background regions? (y), n ')
     background_wl = background_wl.flatten()
     background_net = background_net.flatten()
     sort_indx = np.argsort(background_wl)
     background_wl = background_wl[sort_indx]
     background_net = background_net[sort_indx]
-
-    interpol_back = np.interp(wl, background_wl, background_net)
-    continuum = medfilt(interpol_back, kernel_size = 69)
+    poly_coeff = np.polyfit(background_wl, background_net, 3)
+    continuum = np.polyval(poly_coeff, wl)
     ax.plot(wl, continuum, 'c', lw = 2)
     pyplot.draw()
     return wl, net/continuum, continuum
@@ -62,9 +62,13 @@ def mark_spectrum(line_dict, ax):
         #t.set_rotation('vertical')
     return ax
         
-def manually_remove_CR(wl, spec):
-    fig = pyplot.figure(figsize = [22, 7])
-    ax = fig.add_subplot(1,1,1)
+def manually_remove_CR(wl, spec, flt = None):
+    fig = pyplot.figure(figsize = [22, 14])
+    ax = fig.add_subplot(2,1,1)
+    if flt:
+        ax2 = fig.add_subplot(2, 1, 2)
+        img = pyfits.getdata(flt, 1)
+        ax2.imshow(img, interpolation = 'nearest')
     ax.plot(wl, spec)
     pyplot.draw()
     remove_CR_flag = raw_input('Would you like to remove any cosmic-rays? (y), n ')
