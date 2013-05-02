@@ -7,6 +7,7 @@ import numpy as np
 import pdb
 from astropy import constants
 import numpy as np
+import pyfits
 
 def normalize_spectrum(wl, net, kernel_size = 201):
     fig = pyplot.figure(figsize = [22, 7])
@@ -51,12 +52,13 @@ def apply_redshift(line_dict, v):
     line_dict['redshift_wavelength'] = redshift_list
     return line_dict
 
-def mark_spectrum(line_dict, ax):
+def mark_spectrum(line_dict, ax, c, offset = 0.0):
     for label, lines in zip(line_dict['name'], line_dict['redshift_wavelength']):
         for value in lines:
-            ax.axvline(value, color = 'k', linestyle = '--')
+            ax.axvline(value, color = c, linestyle = '--')
         ymin, ymax = ax.get_ylim()
-        t = ax.text(lines[0], ymax - (ymax - ymin)/8.0, label, horizontalalignment = 'right',  rotation = 'vertical', alpha = 0.5)
+        t = ax.text(lines[0]+offset, ymax - (ymax - ymin)/15.0, label, horizontalalignment = 'right',  rotation = 'vertical',  color = c)
+
         #t.set_fontweight('bold')
         #t.set_backgroundcolor('w')
         #t.set_rotation('vertical')
@@ -68,7 +70,7 @@ def manually_remove_CR(wl, spec, flt = None):
     if flt:
         ax2 = fig.add_subplot(2, 1, 2)
         img = pyfits.getdata(flt, 1)
-        ax2.imshow(img, interpolation = 'nearest')
+        ax2.imshow(img, interpolation = 'nearest', aspect = 'auto', cmap = 'bone', vmin = 0, vmax = 1000)
     ax.plot(wl, spec)
     pyplot.draw()
     remove_CR_flag = raw_input('Would you like to remove any cosmic-rays? (y), n ')
@@ -78,6 +80,7 @@ def manually_remove_CR(wl, spec, flt = None):
         x, y = pyplot.ginput(n = 1, timeout = -1)[0]
         rm_indx = np.where(abs(wl - x) == np.min(abs(wl - x)))[0]
         spec[rm_indx] = (spec[rm_indx - 1] + spec[rm_indx + 1])/2.0
+        print 'CR removed at %f' %(wl[rm_indx])
         ax.cla()
         ax.plot(wl, spec)
         pyplot.draw()
@@ -89,21 +92,61 @@ def manually_remove_CR(wl, spec, flt = None):
 
 
 
-line_dict = {'name': ['N IV 3480', 'Si IV 4089', 'Si IV 4116', 'N IV 4058', 'He II 4200', 'He I 4471', 'He II 4542', 'N III 4636', 'N III 4642', 'He II 4686', 'H-Beta', 'H-Gamma', 'H-Delta'], \
-            'rest_wavelength': [[3480], [4089], [4116], [4058], [4200], [4471], [4542], [4636], [4642], [4686], [4861.33], [4340.47], [4101.74]]}
+NII_dict = {'name':['N II 3995', 'N II 4041/44'],\
+            'rest_wavelength':[[3995],  [4041, 4044]]}
 
+NIII_dict = {'name':['N III 4097','N III 4379' ,'N III 4511/15','N III 4535/414/42','N III 4905'],\
+            'rest_wavelength':[[4097],[4379],[4511, 4515],[4634, 4641, 4642],[4905]]}
+NIV_dict = {'name':['N IV 4058'], \
+            'rest_wavelength': [[4058]]}
 
+NV_dict = {'name':['N V 1238/42','N V 4604/20'],\
+            'rest_wavelength':[[1238, 1242],[4604, 4620]]}
 
+HeI_dict = {'name':['He I 4009' ,'He I 4121','He I 4144','He I 4388', 'He I 4471','He I 4713','He I 4921'],\
+            'rest_wavelength':[[4009], [4121],[4144],  [4388],[4471],[4713],[4921]]}
 
-line_dict = {'name':['N II 3995', 'He I 4009' ,'He I+II 4026', 'N II 4041/44', 'Ni IV 4058', 'C III 4068/69/70',\
-     'O II 4070/72/76', 'Si IV 4089', 'N III 4097', 'H-Delta 4102','Si IV 4116' ,'He I 4121','He I 4144','C III 4187','He II 4200',\
-     'O II 4254','C II 4267','O II 4276/85','O II 4317/20','H-Gamma 4340','O II 4349','O II 4367', 'N III 4379' ,'He I 4388',\
-     'O II 4415/17','DIB is 4429','He I 4471','Mg II 4481' ,'S IV 4486','DIB is 4502','S IV 4504','N III 4511/15','He II 4542','Si III 4553/68/75',\
-     'O II 4591/4596' ,'N V 4604/20','Si IV 4631', 'N III 4535/414/42','C III 4647/50/51' ,'O II 4662/76' ,'He II 4686', 'O II 4699/705',\
-     'He I 4713','DIB is 4727','DIB is 4762','DIB is 4780','H-Beta 4861','DIB is 4881','N III 4905', 'He I 4921'], \
-    'rest_wavelength':[[3995], [4009], [4026], [4041, 4044], [4058], [4068, 4069, 4070], \
-            [4070, 4072, 4076], [4089], [4097], [4102], [4116], [4121], [4144], [4187], [4200],\
-             [4254], [4267], [4276, 4285], [4317, 4320], [4340], [4349], [4367], [4379], [4388], \
-            [4415, 4417], [4429], [4471], [4481], [4486], [4502], [4504], [4511, 4515], [4542], [4553, 4568, 4575], \
-            [4591, 4596], [4604, 4620], [4631], [4634, 4641, 4642], [4647, 4650, 4651], [4662, 4676], [4686], [4699, 4705], \
-            [4713], [4727],[4762], [4780], [4861], [4881], [4905], [4921]]}
+HeI_II_dict = {'name':['He I+II 4026'],\
+            'rest_wavelength':[[4026]]}
+
+HeII_dict = {'name':['He II 1640', 'He II 4200','He II 4542','He II 4686'],\
+            'rest_wavelength':[ [1640], [4200],[4542], [4686]]}
+
+NiIV_dict = {'name':['Ni IV 4058'],\
+            'rest_wavelength':[[4058]]} 
+
+CIV_dict = {'name':['C IV 1548/51'], \
+            'rest_wavelength':[[1548, 1551]]}
+
+CIII_dict = {'name':['C III 1176','C III 4068/69/70','C III 4187','C III 4647/50/51'],\
+            'rest_wavelength':[ [1176],[4068, 4069, 4070],[4187],[4647, 4650, 4651]]}
+
+CII_dict = {'name':['C II 4267'],\
+            'rest_wavelength':[[4267]]}
+
+OII_dict = {'name':['O II 4070/72/76','O II 4254','O II 4276/85','O II 4317/20', 'O II 4349','O II 4367','O II 4415/17','O II 4591/4596' ,'O II 4662/76' ,'O II 4699/705'],\
+            'rest_wavelength':[[4070, 4072, 4076],[4254],[4276, 4285], [4317, 4320],[4349], [4367], [4415, 4417],[4591, 4596],[4662, 4676],[4699, 4705]]}
+
+OV_dict = {'name':['O V 1371'],\
+            'rest_wavelength':[[1371]]}
+
+SiIV_dict = {'name':['Si IV 1393/402','Si IV 4089','Si IV 4116' ,'Si IV 4631'],\
+            'rest_wavelength':[[1391, 1402], [4089], [4116], [4631]]}
+
+SiIII_dict = {'name':['Si III 4553/68/75'],\
+            'rest_wavelength':[[4553, 4568, 4575]]}
+
+MgII_dict = {'name':['Mg II 4481'],\
+            'rest_wavelength':[[4481]]}
+
+SIV_dict = {'name':['S IV 4486','S IV 4504'],\
+            'rest_wavelength':[[4486],[4504]]}
+
+balmer_dict = {'name':['H - $epsilon$ 3970', 'H-$\delta$ 4102','H-$\gamma$ 4340','H-$beta$ 4861'],\
+            'rest_wavelength':[[3970], [4102], [4340],[4861]]}
+
+dib_dict = {'name':['DIB is 4429','DIB is 4502','DIB is 4727','DIB is 4762','DIB is 4780','DIB is 4881'],\
+            'rest_wavelength':[[4429],  [4502], [4727],[4762], [4780],[4881]]}
+
+CaII_dict = {'name': ['Ca II H 3968', 'Ca II K 3933'], \
+            'rest_wavelength': [[3968], [3933]]}
