@@ -9,7 +9,7 @@ import pdb
 import numpy as np
 from optparse import OptionParser
 
-def make_plots(fuv, ccd1, ccd2, ccd3, ccd4, reject_cr_flag, norm_spec_flag, ax1_ylim, ax2_ylim, ):
+def make_plots(fuv, ccd1, ccd2, ccd3, ccd4, reject_cr_flag, norm_spec_flag, ax1_ylim, ax2_ylim, title):
     #Open data files
     tbdata1 = pyfits.getdata(ccd1, 1)
     tbdata2 = pyfits.getdata(ccd2, 1)
@@ -149,9 +149,9 @@ def make_plots(fuv, ccd1, ccd2, ccd3, ccd4, reject_cr_flag, norm_spec_flag, ax1_
     ax3.grid(b = 'on', color = 'gray', ls = ':')
 
     #Label Plots
-    ax2.set_title('Optical Spectrum H9, R136b')
-    ax1.set_title('FUV Spectrum H9, R136b')
-    ax3.set_title('Optical Spectrum H9, R136b R~4000')
+    ax2.set_title('Optical Spectrum %s' %(title))
+    ax1.set_title('FUV Spectrum %s' %(title))
+    ax3.set_title('Optical Spectrum %s R~4000' %(title))
 
     ax3.set_xlabel('Wavelength')
     ax2.set_ylabel('Relative Intensity')
@@ -307,7 +307,7 @@ def make_r136b_spec(options):
     ccd3 = '/user/bostroem/science/12465_otfr20121109/ccd/SE8_4451_combined_img_loc546.fits'
     ccd4 = '/user/bostroem/science/12465_otfr20121109/ccd/SE8_4706_combined_img_loc543.fits'
     fuv = '/Users/bostroem/dropbox/R136/mama/R136b_SE8loc459.fits.gz'
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 2.1])
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 2.1], 'H9, R136b')
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
@@ -325,7 +325,7 @@ def make_H36_spec(options):
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/H36_4451SE3loc548.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/H36_4706SE3loc544.fits.gz'
     fuv = '/Users/bostroem/dropbox/R136/mama/H36_SE3loc461.fits.gz'
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 1.4])
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 1.4], 'H36')
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
