@@ -320,34 +320,69 @@ def make_r136b_spec(options):
     pyplot.close()
 
 def make_H36_spec(options):
-    ccd1 = '/Users/bostroem/dropbox/R136/ccd/H36_3936SE3loc547.fits.gz'
-    ccd2 = '/Users/bostroem/dropbox/R136/ccd/H36_4194SE3loc495.fits.gz'
-    ccd3 = '/Users/bostroem/dropbox/R136/ccd/H36_4451SE3loc548.fits.gz'
-    ccd4 = '/Users/bostroem/dropbox/R136/ccd/H36_4706SE3loc544.fits.gz'
+    #ccd1 = '/Users/bostroem/dropbox/R136/ccd/H36_3936SE3loc547.fits.gz'
+    #ccd2 = '/Users/bostroem/dropbox/R136/ccd/H36_4194SE3loc495.fits.gz'
+    #ccd3 = '/Users/bostroem/dropbox/R136/ccd/H36_4451SE3loc548.fits.gz'
+    #ccd4 = '/Users/bostroem/dropbox/R136/ccd/H36_4706SE3loc544.fits.gz'
     fuv = '/Users/bostroem/dropbox/R136/mama/H36_SE3loc461.fits.gz'
+    ccd1 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_3936_combined_img_loc546.fits'
+    ccd2 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_4194_combined_img_loc494.fits'
+    ccd3 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_4451_combined_img_loc547.fits'
+    ccd4 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_4706_combined_img_loc544.fits'
+
     ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 1.4], 'H36')
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
     pyplot.savefig('/user/bostroem/science/2013_greece/H36_cr_remove_spec.pdf')
 
+def make_r136a7_spec(options):
+    #ccd1 = '/Users/bostroem/dropbox/R136/ccd/H36_3936SE3loc547.fits.gz'
+    #ccd2 = '/Users/bostroem/dropbox/R136/ccd/H36_4194SE3loc495.fits.gz'
+    #ccd3 = '/Users/bostroem/dropbox/R136/ccd/H36_4451SE3loc548.fits.gz'
+    #ccd4 = '/Users/bostroem/dropbox/R136/ccd/H36_4706SE3loc544.fits.gz'
+    fuv = '/Users/bostroem/dropbox/R136/mama/R136a7_NW3loc417.fits.gz'
+    ccd1 = '/Users/bostroem/dropbox/R136/ccd/R136a7_3936NW3loc517.fits.gz'
+    ccd2 = '/Users/bostroem/dropbox/R136/ccd/SE3_4194_combined_img_loc494.fits'
+    ccd3 = '/Users/bostroem/dropbox/R136/ccd/R136a7_4451NW3loc517.fits.gz'
+    ccd4 = '/Users/bostroem/dropbox/R136/ccd/R136a7_4706NW3loc515.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 1.4], 'R136 a6')
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig('/user/bostroem/science/2013_greece/r136a7_cr_remove_spec.pdf')
+
+def make_r136a6_spec(options):
+    #ccd1 = '/Users/bostroem/dropbox/R136/ccd/H36_3936SE3loc547.fits.gz'
+    #ccd2 = '/Users/bostroem/dropbox/R136/ccd/H36_4194SE3loc495.fits.gz'
+    #ccd3 = '/Users/bostroem/dropbox/R136/ccd/H36_4451SE3loc548.fits.gz'
+    #ccd4 = '/Users/bostroem/dropbox/R136/ccd/H36_4706SE3loc544.fits.gz'
+    fuv = '/Users/bostroem/dropbox/R136/mama/R136a6_SE1loc378.fits.gz'
+    ccd1 = '/Users/bostroem/dropbox/R136/ccd/R136a6_3936SE1loc506.fits.gz'
+    ccd2 = '/Users/bostroem/dropbox/R136/ccd/R136a6_4194SE1loc535.fits.gz'
+    ccd3 = '/Users/bostroem/dropbox/R136/ccd/R136a6_4451SE1loc507.fits.gz'
+    ccd4 = '/Users/bostroem/dropbox/R136/ccd/R136a6_4706SE1loc504.fits.gz'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'R136 a6')
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig('/user/bostroem/science/2013_greece/R136a6_cr_remove_spec.pdf')
+
 if __name__ == "__main__":
 
     parser = OptionParser()
-    parser.add_option('--crrej', dest = 'reject_cr_flag', action = 'store_false', help = 'Manually reject cosmic rays', default = True)
-    parser.add_option('--norm', dest = 'norm_spec_flag', action = 'store_false', help = 'Normalize spectrum', default = True)    
+    parser.add_option('--crrej', dest = 'reject_cr_flag', action = 'store_false', help = 'Use previously produce CR rejected file', default = True)
+    parser.add_option('--norm', dest = 'norm_spec_flag', action = 'store_false', help = 'Use previously normalized spectrum file', default = True)    
+    parser.add_option('--bin', dest = 'bin_flag', action = 'store_true', help = 'Bin data', default = False)
     (options, args) = parser.parse_args()
 
-    ##############H9/R136b################
-    make_r136b_spec(options)
-    ##############H31################
-    '''
-    ccd1 = '/Users/bostroem/dropbox/R136/ccd/H31+H105_3936SE8loc515.fits.gz'
-    ccd2 = '/Users/bostroem/dropbox/R136/ccd/H31+H105_4194SE8loc526.fits.gz'
-    ccd3 = '/Users/bostroem/dropbox/R136/ccd/H31+H105_4451SE8loc516.fits.gz'    
-    ccd4 = '/Users/bostroem/dropbox/R136/ccd/H31+H105_4706SE8loc512.fits.gz'
-    fuv = '/Users/bostroem/dropbox/R136/mama/
-    '''
-
-    ##############H36################
+    ############## H9/R136 b################
+    #make_r136b_spec(options)
+    ############## H3 6################
     make_H36_spec(options)
+    ############## R136/a6################
+    make_r136a6_spec(options)
+    ############## R136/a7################
+    #make_r136a7_spec(options)
