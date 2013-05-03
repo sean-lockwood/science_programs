@@ -9,7 +9,7 @@ import pdb
 import numpy as np
 from optparse import OptionParser
 
-def make_plots(fuv, ccd1, ccd2, ccd3, ccd4, reject_cr_flag, norm_spec_flag, ax1_ylim, ax2_ylim, title):
+def make_plots(fuv, ccd1, ccd2, ccd3, ccd4, reject_cr_flag, norm_spec_flag, ax1_ylim, ax2_ylim, title, bin_flag = None):
     #Open data files
     tbdata1 = pyfits.getdata(ccd1, 1)
     tbdata2 = pyfits.getdata(ccd2, 1)
@@ -47,7 +47,7 @@ def make_plots(fuv, ccd1, ccd2, ccd3, ccd4, reject_cr_flag, norm_spec_flag, ax1_
     dq = tbdata5['dq'].ravel()
     wl5 = wl5[dq&512 != 512]
     net5 = net5[dq&512 != 512]
-    
+
     #cr_reject
     if reject_cr_flag:
         net1 = normalize_spec.manually_remove_CR(wl1, net1, flt = '/user/bostroem/science/12465_otfr20121109/ccd/%s_%i_combined_img.fits' %(pyfits.getval(ccd1, 'targname', 0)[5:], pyfits.getval(ccd1, 'cenwave', 0)))
@@ -75,6 +75,12 @@ def make_plots(fuv, ccd1, ccd2, ccd3, ccd4, reject_cr_flag, norm_spec_flag, ax1_
         wl4 = tbdata4['wavelength']
         net4 = tbdata4['net']
 
+
+    if bin_flag:
+        wl1, net1 = bin_data(wl1, net1, bin_size = 3)
+        wl2, net2 = bin_data(wl2, net2, bin_size = 3)
+        wl3, net3 = bin_data(wl3, net3, bin_size = 3)
+        wl4, net4 = bin_data(wl4, net4, bin_size = 3)
 
     #normalize spectra
 
@@ -166,7 +172,6 @@ def write_fits_file(filename, wl, spec, hdr, spec_name = 'flux'):
     thdulist = pyfits.HDUList([hdu, tbhdu])
     thdulist.writeto(filename, clobber = True)
     
-
 def label_spectrum(ax1, ax2, ax3):
 
     NII_dict = {'name':['N II 3995', 'N II 4041/44'],\
@@ -300,6 +305,16 @@ def label_spectrum(ax1, ax2, ax3):
 
     return ax1, ax2, ax3
 
+def bin_data(wl, net, bin_size = 3):
+    array_len = 3*len(wl[bin_size - 1::bin_size])  #In case the len(wl) is not evenly divisible by bin_size
+    bin_wl = wl[0:array_len:bin_size]
+    bin_net = net[0:array_len:bin_size]
+    for i in range(1, bin_size):
+        bin_wl += wl[i:array_len:bin_size]
+        bin_net += net[i:array_len:bin_size]
+        #pdb.set_trace()
+    bin_wl = bin_wl / float(bin_size)
+    return bin_wl, bin_net
 
 def make_r136b_spec(options):
     ccd1 = '/user/bostroem/science/12465_otfr20121109/ccd/SE8_3936_combined_img_loc545.fits'
@@ -330,7 +345,7 @@ def make_H36_spec(options):
     ccd3 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_4451_combined_img_loc547.fits'
     ccd4 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_4706_combined_img_loc544.fits'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 1.4], 'H36')
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 1.4], 'H36', bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
@@ -347,7 +362,7 @@ def make_r136a7_spec(options):
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/R136a7_4451NW3loc517.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/R136a7_4706NW3loc515.fits'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 1.4], 'R136 a6')
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 1.4], 'R136 a6', bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
@@ -364,7 +379,7 @@ def make_r136a6_spec(options):
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/R136a6_4451SE1loc507.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/R136a6_4706SE1loc504.fits.gz'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'R136 a6')
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'R136 a6', bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
