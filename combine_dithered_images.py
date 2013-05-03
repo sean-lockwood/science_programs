@@ -188,12 +188,15 @@ def create_new_combined_arrays(top_img, bottom_img, top_err, bottom_err, top_dq,
         new_dq2 = np.int_(new_dq2)
         new_dq = np.bitwise_or(new_dq1, new_dq2)
         
-        make_combined_fits(hdr10, hdr11, hdr12, hdr13, new_img1, new_err1, new_dq1, suffix = 'ocr_tmp1.fits')
-        make_combined_fits(hdr20, hdr21, hdr22, hdr23, new_img2, new_err2, new_dq2, suffix = 'ocr_tmp2.fits')
-        if os.path.exists('%s_%i_combined_img.fits' %(hdr10['targname'][5:], hdr10['cenwave'])):
-            os.remove('%s_%i_combined_img.fits' %(hdr10['targname'][5:], hdr10['cenwave']))
-        ocrreject(input = ','.join(glob.glob('%s_ocr_tmp*.fits' %(hdr10['targname'][5:]))), output = '%s_%i_combined_img.fits' %(hdr10['targname'][5:], hdr10['cenwave']))
-        
+        if hdr10['detector'] == 'CCD':
+            make_combined_fits(hdr10, hdr11, hdr12, hdr13, new_img1, new_err1, new_dq1, suffix = 'ocr_tmp1.fits')
+            make_combined_fits(hdr20, hdr21, hdr22, hdr23, new_img2, new_err2, new_dq2, suffix = 'ocr_tmp2.fits')
+            if os.path.exists('%s_%i_combined_img.fits' %(hdr10['targname'][5:], hdr10['cenwave'])):
+                os.remove('%s_%i_combined_img.fits' %(hdr10['targname'][5:], hdr10['cenwave']))
+            ocrreject(input = ','.join(glob.glob('%s_ocr_tmp*.fits' %(hdr10['targname'][5:]))), output = '%s_%i_combined_img.fits' %(hdr10['targname'][5:], hdr10['cenwave']))
+        else:
+            new_img = (new_img1+new_img2)/2.0
+            make_combined_fits(hdr10, hdr11, hdr12, hdr13, new_img, new_err, new_dq, cenwave = hdr10['cenwave'])
         
 
 
@@ -235,15 +238,15 @@ if __name__ == "__main__":
     parser.add_option('--UseHeader', dest = 'use_hdr_offset', action = 'store_true', help = 'Set the dithered offset in pixels', default = False)
     (options, args) = parser.parse_args()
     #for the FUV data
-    #idir = '/user/bostroem/science/12465_otfr20120425/mama/'
+    idir = '/user/bostroem/science/12465_otfr20120425/mama/'
 
     ##idir = '/Users/bostroem/science/12465_otfr20120425/mama/'
-    ##os.chdir(idir)
-    ##flist = glob.glob('obrc04???_flt.fits')+glob.glob('obrc05???_flt.fits')
-    ##dec_dict = make_declination_dict(flist)
-    ##for targ_dec in dec_dict.keys():
-    ##    combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-
+    os.chdir(idir)
+    flist = glob.glob('obrc04???_flt.fits')+glob.glob('obrc05???_flt.fits')
+    dec_dict = make_declination_dict(flist)
+    for targ_dec in dec_dict.keys():
+        combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
+    pdb.set_trace()
     #idir = '/Users/bostroem/science/12465_otfr20121109/ccd/'
     idir = '/user/bostroem/science/12465_otfr20121109/ccd/'
     os.chdir(idir)
