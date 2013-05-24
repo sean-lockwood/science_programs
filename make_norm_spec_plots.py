@@ -76,6 +76,8 @@ def make_plots(fuv, ccd1, ccd2, ccd3, ccd4, reject_cr_flag, norm_spec_flag, ax1_
         net4 = tbdata4['net']
 
 
+
+
     if bin_flag:
         wl1, net1 = bin_data(wl1, net1, bin_size = 3)
         wl2, net2 = bin_data(wl2, net2, bin_size = 3)
@@ -177,7 +179,7 @@ def label_spectrum(ax1, ax2, ax3):
     NII_dict = {'name':['N II 3995', 'N II 4041/44'],\
                 'rest_wavelength':[[3995],  [4041, 4044]]}
 
-    NIII_dict = {'name':['N III 4097','N III 4379' ,'N III 4511/15','N III 4535/414/42','N III 4905'],\
+    NIII_dict = {'name':['N III 4097','N III 4379' ,'N III 4511/15','N III 4634/14/42','N III 4905'],\
                 'rest_wavelength':[[4097],[4379],[4511, 4515],[4634, 4641, 4642],[4905]]}
     NIV_dict = {'name':['N IV 4058'], \
                 'rest_wavelength': [[4058]]}
@@ -226,15 +228,17 @@ def label_spectrum(ax1, ax2, ax3):
     SIV_dict = {'name':['S IV 4486','S IV 4504'],\
                 'rest_wavelength':[[4486],[4504]]}
     
-    balmer_dict = {'name':[r'H-$\epsilon$ 3970', r'H-$\delta$ 4102',r'H-$\gamma$ 4340',r'H-$\beta$ 4861'],\
+    balmer_dict = {'name':[r'H $\epsilon$ 3970', r'H $\delta$ 4102',r'H $\gamma$ 4340',r'H $\beta$ 4861'],\
                 'rest_wavelength':[[3970], [4102], [4340],[4861]]}
 
     dib_dict = {'name':['DIB is 4429','DIB is 4502','DIB is 4727','DIB is 4762','DIB is 4780','DIB is 4881'],\
                 'rest_wavelength':[[4429],  [4502], [4727],[4762], [4780],[4881]]}
 
-    ISM_dict = {'name': ['Si II 1264', 'OI 1302', 'Si II 1304', 'Si II 1526', 'Fe II 1608', 'Al II 1671', 'Ca II H 3968', 'Ca II K 3933'], \
-                'rest_wavelength': [[1264.7], [1302.2],[1304.4], [1526.7], [1608.5], [1670.8], [3968], [3933]]}
+    ISM_dict = {'name': ['Ly $\\alpha$ 1215', 'Si II 1260', 'OI 1302',  'C II 1335', 'Si II 1526', 'Fe II 1608', 'Al II 1671', 'Ca II H 3968', 'Ca II K 3933'], \
+                'rest_wavelength': [[1215.6], [1260.4], [1302.2], [1334.5], [1526.7], [1608.5], [1670.8], [3968], [3933]]}
 
+    ISM_dict_shifted = {'name': ['Si II 1304'], \
+                'rest_wavelength': [[1304.4]]}
 
 
     line_dict = normalize_spec.apply_redshift(HeI_dict, 268.0E3)
@@ -297,6 +301,11 @@ def label_spectrum(ax1, ax2, ax3):
     normalize_spec.mark_spectrum(ISM_dict, ax1, 'gray')
     normalize_spec.mark_spectrum(ISM_dict, ax2, 'gray')
     normalize_spec.mark_spectrum(ISM_dict, ax3, 'gray')
+
+    line_dict = normalize_spec.apply_redshift(ISM_dict_shifted, 268.0E3)
+    normalize_spec.mark_spectrum(ISM_dict_shifted, ax1, 'gray', offset = 5.0)
+    normalize_spec.mark_spectrum(ISM_dict_shifted, ax2, 'gray', offset = 5.0)
+    normalize_spec.mark_spectrum(ISM_dict_shifted, ax3, 'gray', offset = 5.0)
 
     line_dict = normalize_spec.apply_redshift(SV_dict, 268.0E3)
     normalize_spec.mark_spectrum(SV_dict, ax1, 'm')
@@ -398,6 +407,6 @@ if __name__ == "__main__":
     ############## H3 6################
     make_H36_spec(options)
     ############## R136/a6################
-    make_r136a6_spec(options)
+    #make_r136a6_spec(options)
     ############## R136/a7################
     #make_r136a7_spec(options)
