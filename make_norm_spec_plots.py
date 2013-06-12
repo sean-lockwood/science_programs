@@ -1,6 +1,12 @@
+import os
+if os.environ['HOST'] == 'pummelo':
+    base_dir = '/Users/bostroem/science'
+elif os.environ['HOST'] == 'satsuma':
+    base_dir = '/user/bostroem/science'
+else:
+    print 'Computer not recognized, paths will need to be manually updated'
 import sys
-#sys.path.append('/user/bostroem/science/programs')
-sys.path.append('/Users/bostroem/science/programs')
+sys.path.append(os.path.join(base_dir, 'programs'))
 import normalize_spec
 import pyfits
 from matplotlib import pyplot
@@ -8,9 +14,9 @@ from stsci.convolve import boxcar
 import pdb
 import numpy as np
 from optparse import OptionParser
-import os
 
-def make_plots(fuv, ccd1, ccd2, ccd3, ccd4, reject_cr_flag, norm_spec_flag, ax1_ylim, ax2_ylim, title, bin_flag = None):
+
+def make_plots(fuv, ccd1, ccd2, ccd3, ccd4, reject_cr_flag, norm_spec_flag, ax1_ylim, ax2_ylim, title, base_dir, bin_flag = None):
     check_existance_of_files(ccd1, ccd2, ccd3, ccd4, fuv)
     if norm_spec_flag == True:
         tbdata5 = pyfits.getdata(fuv, 1)
@@ -65,16 +71,16 @@ def make_plots(fuv, ccd1, ccd2, ccd3, ccd4, reject_cr_flag, norm_spec_flag, ax1_
             wl4 = tbdata4['wavelength'].ravel()
             net4 = tbdata4['net'].ravel()
     
-        net1 = normalize_spec.manually_remove_CR(wl1, net1, flt = '/user/bostroem/science/combined_dithered_images/%s_%i_combined_img.fits' %(pyfits.getval(ccd1, 'targname', 0)[5:], pyfits.getval(ccd1, 'cenwave', 0)))
+        net1 = normalize_spec.manually_remove_CR(wl1, net1, flt = os.path.join(base_dir, 'combined_dithered_images/%s_%i_combined_img.fits') %(pyfits.getval(ccd1, 'targname', 0)[5:], pyfits.getval(ccd1, 'cenwave', 0)))
         write_fits_file(ccd1.replace('.fits', '_crj.fits'), wl1, net1, pyfits.getheader(ccd1, 0), spec_name = 'net')
     
-        norm_spec2 = normalize_spec.manually_remove_CR(wl2, net2, flt = '/user/bostroem/science/combined_dithered_images/%s_%i_combined_img.fits' %(pyfits.getval(ccd2, 'targname', 0)[5:], pyfits.getval(ccd2, 'cenwave', 0)))
+        norm_spec2 = normalize_spec.manually_remove_CR(wl2, net2, flt = os.path.join(base_dir, 'combined_dithered_images/%s_%i_combined_img.fits') %(pyfits.getval(ccd2, 'targname', 0)[5:], pyfits.getval(ccd2, 'cenwave', 0)))
         write_fits_file(ccd2.replace('.fits', '_crj.fits'), wl2, net2, pyfits.getheader(ccd2, 0), spec_name = 'net')
     
-        norm_spec3 = normalize_spec.manually_remove_CR(wl3, net3, flt = '/user/bostroem/science/combined_dithered_images/%s_%i_combined_img.fits' %(pyfits.getval(ccd3, 'targname', 0)[5:], pyfits.getval(ccd3, 'cenwave', 0)))
+        norm_spec3 = normalize_spec.manually_remove_CR(wl3, net3, flt = os.path.join(base_dir, 'combined_dithered_images/%s_%i_combined_img.fits') %(pyfits.getval(ccd3, 'targname', 0)[5:], pyfits.getval(ccd3, 'cenwave', 0)))
         write_fits_file(ccd3.replace('.fits', '_crj.fits'), wl3, net3, pyfits.getheader(ccd3, 0), spec_name = 'net')
     
-        norm_spec4 = normalize_spec.manually_remove_CR(wl4, net4, flt = '/user/bostroem/science/combined_dithered_images/%s_%i_combined_img.fits' %(pyfits.getval(ccd4, 'targname', 0)[5:], pyfits.getval(ccd4, 'cenwave', 0)))
+        norm_spec4 = normalize_spec.manually_remove_CR(wl4, net4, flt = os.path.join(base_dir, 'combined_dithered_images/%s_%i_combined_img.fits') %(pyfits.getval(ccd4, 'targname', 0)[5:], pyfits.getval(ccd4, 'cenwave', 0)))
         write_fits_file(ccd4.replace('.fits', '_crj.fits'), wl4, net4, pyfits.getheader(ccd4, 0), spec_name = 'net')
     
     
@@ -340,17 +346,17 @@ def bin_data(wl, net, bin_size = 3):
     bin_wl = bin_wl / float(bin_size)
     return bin_wl, bin_net
 
-def make_r136b_spec(options):
-    ccd1 = '/user/bostroem/science/12465_otfr20121109/ccd/SE8_3936_combined_img_loc545.fits'
-    ccd2 = '/user/bostroem/science/12465_otfr20121109/ccd/SE8_4194_combined_img_loc496.fits'
-    ccd3 = '/user/bostroem/science/12465_otfr20121109/ccd/SE8_4451_combined_img_loc546.fits'
-    ccd4 = '/user/bostroem/science/12465_otfr20121109/ccd/SE8_4706_combined_img_loc543.fits'
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0005_G140L.fits'
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 2.1], 'H9, R136b')
+def make_r136b_spec(options, base_dir):
+    ccd1 = os.path.join(base_dir, '12465_otfr20121109/ccd/SE8_3936_combined_img_loc545.fits')
+    ccd2 = os.path.join(base_dir, '12465_otfr20121109/ccd/SE8_4194_combined_img_loc496.fits')
+    ccd3 = os.path.join(base_dir, '12465_otfr20121109/ccd/SE8_4451_combined_img_loc546.fits')
+    ccd4 = os.path.join(base_dir, '12465_otfr20121109/ccd/SE8_4706_combined_img_loc543.fits')
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0005_G140L.fits')
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 2.1], 'H9, R136b', base_dir)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
-    pyplot.savefig('/user/bostroem/science/2013_greece/H9_R136b_cr_remove_spec.pdf')
+    pyplot.savefig(os.path.join(base_dir, '2013_greece/H9_R136b_cr_remove_spec.pdf'))
     pyplot.close()
     pyplot.close()
     pyplot.close()
@@ -358,156 +364,158 @@ def make_r136b_spec(options):
     pyplot.close()
     pyplot.close()
 
-def make_H36_spec(options):
+def make_H36_spec(options, base_dir):
     #ccd1 = '/Users/bostroem/dropbox/R136/ccd/H36_3936SE3loc547.fits.gz'
     #ccd2 = '/Users/bostroem/dropbox/R136/ccd/H36_4194SE3loc495.fits.gz'
     #ccd3 = '/Users/bostroem/dropbox/R136/ccd/H36_4451SE3loc548.fits.gz'
     #ccd4 = '/Users/bostroem/dropbox/R136/ccd/H36_4706SE3loc544.fits.gz'
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0015_G140L.fits'
-    ccd1 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_3936_combined_img_loc546.fits'
-    ccd2 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_4194_combined_img_loc494.fits'
-    ccd3 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_4451_combined_img_loc547.fits'
-    ccd4 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_4706_combined_img_loc544.fits'
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0015_G140L.fits')
+    ccd1 = os.path.join(base_dir, '12465_otfr20121109/ccd/SE3_3936_combined_img_loc546.fits')
+    ccd2 = os.path.join(base_dir, '12465_otfr20121109/ccd/SE3_4194_combined_img_loc494.fits')
+    ccd3 = os.path.join(base_dir, '12465_otfr20121109/ccd/SE3_4451_combined_img_loc547.fits')
+    ccd4 = os.path.join(base_dir, '12465_otfr20121109/ccd/SE3_4706_combined_img_loc544.fits')
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 1.4], 'H36', bin_flag = options.bin_flag)
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 1.4], 'H36', base_dir, bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
-    pyplot.savefig('/user/bostroem/science/2013_greece/H36_cr_remove_spec.pdf')
+    pyplot.savefig(os.path.join(base_dir, '2013_greece/H36_cr_remove_spec.pdf'))
 
-def make_r136a7_spec(options):
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0007_G140L.fits'
+def make_r136a7_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0007_G140L.fits')
     ccd1 = '/Users/bostroem/dropbox/R136/ccd/R136a7_3936NW3loc517.fits.gz'
     ccd2 = '/Users/bostroem/Dropbox/R136/ccd/R136a7_4194NW3loc526.fits.gz'
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/R136a7_4451NW3loc517.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/R136a7_4706NW3loc515.fits.gz'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 1.4], 'R136a7', bin_flag = options.bin_flag)
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 2.3], [0.6, 1.4], 'R136a7', base_dir, bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
-    pyplot.savefig('/user/bostroem/science/2013_greece/r136a7_cr_remove_spec.pdf')
+    pyplot.savefig(os.path.join(base_dir, '2013_greece/r136a7_cr_remove_spec.pdf'))
 
-def make_r136a6_spec(options):
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0004_G140L.fits'
+def make_r136a6_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0004_G140L.fits')
     ccd1 = '/Users/bostroem/dropbox/R136/ccd/R136a6_3936SE1loc506.fits.gz'
     ccd2 = '/Users/bostroem/dropbox/R136/ccd/R136a6_4194SE1loc535.fits.gz'
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/R136a6_4451SE1loc507.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/R136a6_4706SE1loc504.fits.gz'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'R136a6', bin_flag = options.bin_flag)
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'R136a6', base_dir, bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
-    pyplot.savefig('/user/bostroem/science/2013_greece/R136a6_cr_remove_spec.pdf')
+    pyplot.savefig(os.path.join(base_dir, '2013_greece/R136a6_cr_remove_spec.pdf'))
 
-def make_H50_spec(options):
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0015_G140L.fits'
+def make_H50_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0015_G140L.fits')
     ccd1 = '/Users/bostroem/dropbox/R136/ccd/H50_3936SE3loc528.fits.gz'
     ccd2 = '/Users/bostroem/dropbox/R136/ccd/H50_4194SE3loc514.fits.gz'
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/H50_4451SE3loc529.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/H50_4706SE3loc525.fits.gz'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H50', bin_flag = options.bin_flag)
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H50', base_dir, bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
-    pyplot.savefig('/user/bostroem/science/2013_greece/H50_cr_remove_spec.pdf') 
+    pyplot.savefig(os.path.join(base_dir, '2013_greece/H50_cr_remove_spec.pdf') )
 
-def make_H40_spec(options):
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0020_G140L.fits'
+def make_H40_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0020_G140L.fits')
     ccd1 = '/Users/bostroem/dropbox/R136/ccd/H40_3936NW8loc500.fits.gz'
     ccd2 = '/Users/bostroem/dropbox/R136/ccd/H40_4194NW8loc542.fits.gz'
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/H40_4451NW8loc500.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/H40_4706NW8loc499.fits.gz'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H40', bin_flag = options.bin_flag)
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H40', base_dir, bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
-    pyplot.savefig('/user/bostroem/science/2013_greece/H40_cr_remove_spec.pdf') 
+    pyplot.savefig(os.path.join(base_dir, '2013_greece/H40_cr_remove_spec.pdf') )
 
-def make_H55_spec(options):
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0023_G140L.fits'
+def make_H55_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0023_G140L.fits')
     ccd1 = '/Users/bostroem/dropbox/R136/ccd/H55_3936SE9loc516.fits.gz'
     ccd2 = '/Users/bostroem/dropbox/R136/ccd/H55_4194SE9loc525.fits.gz'
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/H55_4451SE9loc517.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/H55_4706SE9loc514.fits.gz'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H55', bin_flag = options.bin_flag)
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H55', base_dir, bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
-    pyplot.savefig('/user/bostroem/science/2013_greece/H55_cr_remove_spec.pdf')
+    pyplot.savefig(os.path.join(base_dir, '2013_greece/H55_cr_remove_spec.pdf'))
 
-def make_H62_spec(options):
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0024_G140L.fits'
+def make_H62_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0024_G140L.fits')
     ccd1 = '/Users/bostroem/dropbox/R136/ccd/H62_3936SE3loc513.fits.gz'
     ccd2 = '/Users/bostroem/dropbox/R136/ccd/H62_4194SE3loc533.fits.gz'
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/H62_4451SE3loc514.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/H62_4706SE3loc510.fits.gz'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H62', bin_flag = options.bin_flag)
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H62', base_dir, bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
-    pyplot.savefig('/user/bostroem/science/2013_greece/H62_cr_remove_spec.pdf')
+    pyplot.savefig(os.path.join(base_dir, '2013_greece/H62_cr_remove_spec.pdf'))
 
-def make_H58_spec(options):
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0024_G140L.fits'
+def make_H58_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0024_G140L.fits')
     ccd1 = '/Users/bostroem/dropbox/R136/ccd/H58_3936NW1loc531.fits.gz'
     ccd2 = '/Users/bostroem/dropbox/R136/ccd/H58_4194NW1loc510.fits.gz'
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/H58_4451NW1loc532.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/H58_4706NW1loc529.fits'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H58', bin_flag = options.bin_flag)
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H58', base_dir, bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
-    pyplot.savefig('/user/bostroem/science/2013_greece/H58_cr_remove_spec.pdf') 
+    pyplot.savefig(os.path.join(base_dir, '2013_greece/H58_cr_remove_spec.pdf') )
 
 
-def make_H48_spec(options):
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0026_G140L.fits'
+def make_H48_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0026_G140L.fits')
     ccd1 = '/Users/bostroem/dropbox/R136/ccd/H48_3936SE2loc542.fits.gz'
     ccd2 = '/Users/bostroem/dropbox/R136/ccd/H48_4194SE2loc500.fits.gz'
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/H48_4451SE2loc542.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/H48_4706SE2loc539.fits.gz'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H48', bin_flag = options.bin_flag)
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H48', base_dir, bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
-    pyplot.savefig('/user/bostroem/science/2013_greece/H48_cr_remove_spec.pdf')
+    pyplot.savefig(os.path.join(base_dir, '2013_greece/H48_cr_remove_spec.pdf'))
 
 
-def make_H47_spec(options):
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0027_G140L.fits'
+def make_H47_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0027_G140L.fits')
     ccd1 = '/Users/bostroem/dropbox/R136/ccd/H47_3936NW3loc489.fits.gz'
     ccd2 = '/Users/bostroem/dropbox/R136/ccd/H47_4194NW3loc554.fits.gz'
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/H47_4451NW3loc489.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/H47_4706NW3loc487.fits.gz'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H47', bin_flag = options.bin_flag)
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H47', base_dir, bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
-    pyplot.savefig('/user/bostroem/science/2013_greece/H47_cr_remove_spec.pdf') 
+    pyplot.savefig(os.path.join(base_dir, '2013_greece/H47_cr_remove_spec.pdf') )
 
-def make_H35_spec(options):
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0012_G140L.fits'
+def make_H35_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0012_G140L.fits')
     ccd1 = '/Users/bostroem/dropbox/R136/ccd/H35_3936NW5loc528.fits.gz'
     ccd2 = '/Users/bostroem/dropbox/R136/ccd/H35_4194NW5loc515.fits.gz'
     ccd3 = '/Users/bostroem/dropbox/R136/ccd/H35_4451NW5loc528.fits.gz'
     ccd4 = '/Users/bostroem/dropbox/R136/ccd/H35_4706NW5loc526.fits.gz'
 
-    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H35', bin_flag = options.bin_flag)
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.4], 'H35', base_dir, bin_flag = options.bin_flag)
     ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
     pyplot.draw()
     pdb.set_trace()
-    pyplot.savefig('/user/bostroem/science/2013_greece/H35_cr_remove_spec.pdf') 
+    pyplot.savefig(os.path.join(base_dir, '2013_greece/H35_cr_remove_spec.pdf') )
 
 if __name__ == "__main__":
+
+
 
     #If --norm is not supllied norm_spec_flag is set to True = user wants to normalize the spectrum
     parser = OptionParser()
@@ -517,29 +525,29 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     ############## H9/R136 b################
-    #make_r136b_spec(options)
+    #make_r136b_spec(options, base_dir)
     ############## H36################
-    #make_H36_spec(options)
+    #make_H36_spec(options, base_dir)
     ############## R136/a6################
-    #make_r136a6_spec(options)
+    #make_r136a6_spec(options, base_dir)
     ############## H62 ################
-    #make_H62_spec(options)
+    #make_H62_spec(options, base_dir)
     ############## H50 ################
-    #make_H50_spec(options)
+    #make_H50_spec(options, base_dir)
     ############## H48 ################
-    #make_H48_spec(options)
+    #make_H48_spec(options, base_dir)
     ############## H55 ################
-    #make_H55_spec(options)
+    #make_H55_spec(options, base_dir)
     ############## H47 ################
-    #make_H47_spec(options)
+    #make_H47_spec(options, base_dir)
     ############## H40 ################
-    #make_H40_spec(options)
+    #make_H40_spec(options, base_dir)
     ############## H35 ################
-    #make_H35_spec(options)
+    #make_H35_spec(options, base_dir)
     ############## R136/a7################
-    #make_r136a7_spec(options)
+    #make_r136a7_spec(options, base_dir)
     ############## H58 ################
-    make_H58_spec(options)
+    make_H58_spec(options, base_dir)
 
 
 
