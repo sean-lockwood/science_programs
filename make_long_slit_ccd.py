@@ -6,20 +6,58 @@ import pdb
 import math
 
 
-def plot_ax(img, orientat,  ax,targname, vmin, vmax, ymin, ymax, offset):
+def plot_ax(img, orientat, ax, targname, vmin, vmax, ymin, ymax, offset):
+    '''
+    This program displays an image on a given subplot. It was created for data taken at 2 orientations
+    180 degrees different. It therefore will rotate one orientation and offset it.
+    Inputs:
+        img: data array
+        orientat: orientation keyword from the science data
+        ax: subplot object
+        targname: Title for plot - name of target
+        vmin, vmax: contrast limits
+        ymin, ymax: limits on the y axis
+        offset: vertical offset of rotated spectrum
+    Outputs:
+        ax: axis object
+        l: imshow object
+    '''
+    #Create title for axis object
     ax.set_title(targname, fontsize = 9)
+    #display the data
     l = ax.imshow(img, cmap = 'bone', vmin = vmin, vmax = vmax, aspect = 'auto', interpolation = 'nearest')
+    #set the limits
     ax.set_ylim(ymin, ymax, offset)
+    #for orientations of -115, rotate the image and reset limits and title
     if orientat < 0:
         ax.cla()
         ax.set_title(targname, fontsize = 9)
         ax.imshow(np.rot90(img, k = 2), cmap = 'bone', vmin = vmin, vmax = vmax, aspect = 'auto', interpolation = 'nearest')
         ax.set_ylim(ymin - offset, ymax - offset)
+    #Write orientation at the bottom of axis object 
     ax.set_xticks([25])
     ax.set_xticklabels(['%4.1f' %(orientat)], fontsize = 7)
     return ax, l
 
 def make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, offset):
+    '''
+    This function takes a list of files and plots each one to a different subplot object.
+    It was created to make a psuedo image of a slit stepped across R136
+    This code creates 17 subplot objects
+
+    Inputs:
+        flist: list of files
+        title: title for whole figure
+        ymin, yma: limits on y axis
+        vmin, vmax: contrast limits
+        offset: vertical offset of rotated spectrum
+
+    Outputs:
+        ax_list: list of subplot objects
+        fig: figure object
+    '''
+
+    #Create figure and axis objects
     fig = pyplot.figure(figsize = [8, 17])
     ax1 = fig.add_subplot(1, 17, 1)
     ax2 = fig.add_subplot(1, 17, 2)
@@ -39,7 +77,7 @@ def make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, offset):
     ax16 = fig.add_subplot(1, 17, 16)
     ax17 = fig.add_subplot(1, 17, 17)
     
-    
+    #Display images on appropriate subplot
     for ifile in flist:
         print ifile
         #Get the middle 50 columns of the image
@@ -88,54 +126,75 @@ def make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, offset):
     fig.suptitle(title)
     return ax_list, fig
 
-#View center of cluster
-ymin = 450
-ymax = 580
-#set vmax and vmin
-vmax = 1000
-vmin = 0
 
-#orientat1 = ['SE9', 'SE8', 'SE7', 'SE6', 'SE5', 'SE4', 'SE2', 'SE1', 'NW1']
-#orientat2 = ['NW2', 'NW3', 'NW4', 'NW5', 'NW6', 'NW7', 'NW8']
+def make_3963_plot(ymin, ymax, vmin, vmax):
+    ###############
+    # 3963 Cenwave
+    ###############
+    flist = glob.glob('/user/bostroem/science/12465_otfr20121109/ccd/???_3936_combined_img.fits') + \
+        glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_3936_combined_img.fits') + \
+        glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_3936_combined_img.fits.gz')
+    title = 'Long Slit Image G430M 3963'
+    ax_list3963, fig3963 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 20)
+    fig3963.savefig('/user/bostroem/science/'+'_'.join(title.split())+'.pdf')
 
+def make_4194_plot(ymin, ymax, vmin, vmax):
+    ###############
+    # 4194 Cenwave
+    ###############
+    flist = glob.glob('/user/bostroem/science/12465_otfr20121109/ccd/???_4194_combined_img.fits') + \
+        glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_4194_combined_img.fits') + \
+        glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_4194_combined_img.fits.gz')
+    title = 'Long Slit Image G430M 4194'
+    ax_list4194, fig4194 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 7)
+    fig4194.savefig('/user/bostroem/science/'+'_'.join(title.split())+'.pdf')
+def make_4451_plot(ymin, ymax, vmin, vmax):
+    ###############
+    # 4451 Cenwave
+    ###############
+    flist = glob.glob('/user/bostroem/science/12465_otfr20121109/ccd/???_4451_combined_img.fits') + \
+        glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_4451_combined_img.fits') + \
+        glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_4451_combined_img.fits.gz')
+    title = 'Long Slit Image G430M 4451'
+    ax_list4451, fig4451 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 20)
+    fig4451.savefig('/user/bostroem/science/'+'_'.join(title.split())+'.pdf')
+def make_4709_plot(ymin, ymax, vmin, vmax):
+###############
+# 4706 Cenwave
+###############
+    flist = glob.glob('/user/bostroem/science/12465_otfr20121109/ccd/???_4706_combined_img.fits') + \
+        glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_4706_combined_img.fits') + \
+        glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_4706_combined_img.fits.gz')
+    title = 'Long Slit Image G430M 4706'
+    ax_list4706, fig4706 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 15)
+    fig4706.savefig('/user/bostroem/science/'+'_'.join(title.split())+'.pdf')
+
+#-----------------------------------------------
+#This is the main program
+#-----------------------------------------------
+'''
 #cenwaves = ['3963', '4194', '4451', '4706']
-
 #3963: SE9:NW1 @64, NW2:NW8 @-115
 #4194: SE9:NW1 @ -115, NW2:NW8 @64
 #4451: SE9:NW1 @64, NW2:NW8 @-115
 #4706: SE9:NW1 @64, NW2:NW8 @-115
 #6581: all @-115
+'''
 
-#derived this for #3963, will have to see if it works for the other gratings: 1031 - yloc_img + 13
+#Sets the y-limits - these values give you the center of the cluster
+ymin = 450
+ymax = 580
+#set the contrast limits: vmax and vmin
+#To set individually for each slit position, do this in make_long_slit_img
+vmax = 1000
+vmin = 0
+#Define list of files, set title, and create and save figure
 
-flist = glob.glob('/Users/bostroem/science/12465_otfr20121109/ccd/???_3936_combined_img.fits') + \
-    glob.glob('/Users/bostroem/science/12465_otfr20130503/ccd/???_3936_combined_img.fits') + \
-    glob.glob('/Users/bostroem/science/12465_otfr20130503/ccd/???_3936_combined_img.fits.gz')
-title = 'Long Slit Image G430M 3963'
-ax_list3963, fig3963 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 20)
-fig3963.savefig('/Users/bostroem/science/'+'_'.join(title.split())+'.pdf')
+make_3963_plot(ymin, ymax, vmin, vmax)
+make_4194_plot(ymin, ymax, vmin, vmax)
+make_4451_plot(ymin, ymax, vmin, vmax)
+make_4709_plot(ymin, ymax, vmin, vmax)
 
-
-flist = glob.glob('/Users/bostroem/science/12465_otfr20121109/ccd/???_4194_combined_img.fits') + \
-    glob.glob('/Users/bostroem/science/12465_otfr20130503/ccd/???_4194_combined_img.fits') + \
-    glob.glob('/Users/bostroem/science/12465_otfr20130503/ccd/???_4194_combined_img.fits.gz')
-title = 'Long Slit Image G430M 4194'
-ax_list4194, fig4194 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 7)
-fig4194.savefig('/Users/bostroem/science/'+'_'.join(title.split())+'.pdf')
-
-flist = glob.glob('/Users/bostroem/science/12465_otfr20121109/ccd/???_4451_combined_img.fits') + \
-    glob.glob('/Users/bostroem/science/12465_otfr20130503/ccd/???_4451_combined_img.fits') + \
-    glob.glob('/Users/bostroem/science/12465_otfr20130503/ccd/???_4451_combined_img.fits.gz')
-title = 'Long Slit Image G430M 4451'
-ax_list4451, fig4451 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 20)
-fig4451.savefig('/Users/bostroem/science/'+'_'.join(title.split())+'.pdf')
-
-flist = glob.glob('/Users/bostroem/science/12465_otfr20121109/ccd/???_4706_combined_img.fits') + \
-    glob.glob('/Users/bostroem/science/12465_otfr20130503/ccd/???_4706_combined_img.fits') + \
-    glob.glob('/Users/bostroem/science/12465_otfr20130503/ccd/???_4706_combined_img.fits.gz')
-title = 'Long Slit Image G430M 4706'
-ax_list4706, fig4706 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 15)
-fig4706.savefig('/Users/bostroem/science/'+'_'.join(title.split())+'.pdf')
 
 
 
