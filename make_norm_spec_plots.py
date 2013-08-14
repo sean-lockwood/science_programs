@@ -71,16 +71,16 @@ def make_plots(fuv, ccd1, ccd2, ccd3, ccd4, reject_cr_flag, norm_spec_flag, ax1_
             wl4 = tbdata4['wavelength'].ravel()
             net4 = tbdata4['net'].ravel()
     
-        net1 = normalize_spec.manually_remove_CR(wl1, net1, flt = os.path.join(base_dir, 'combined_dithered_images/%s_%i_combined_img.fits') %(pyfits.getval(ccd1, 'targname', 0)[5:], pyfits.getval(ccd1, 'cenwave', 0)))
+        net1 = normalize_spec.manually_remove_CR(wl1, net1, flt = os.path.join(base_dir, 'combined_dithered_images/%s_%i_combined_img.fits' %(pyfits.getval(ccd1, 'targname', 0)[5:], pyfits.getval(ccd1, 'cenwave', 0))))
         write_fits_file(ccd1.replace('.fits', '_crj.fits'), wl1, net1, pyfits.getheader(ccd1, 0), spec_name = 'net')
     
-        norm_spec2 = normalize_spec.manually_remove_CR(wl2, net2, flt = os.path.join(base_dir, 'combined_dithered_images/%s_%i_combined_img.fits') %(pyfits.getval(ccd2, 'targname', 0)[5:], pyfits.getval(ccd2, 'cenwave', 0)))
+        norm_spec2 = normalize_spec.manually_remove_CR(wl2, net2, flt = os.path.join(base_dir, 'combined_dithered_images/%s_%i_combined_img.fits' %(pyfits.getval(ccd2, 'targname', 0)[5:], pyfits.getval(ccd2, 'cenwave', 0))))
         write_fits_file(ccd2.replace('.fits', '_crj.fits'), wl2, net2, pyfits.getheader(ccd2, 0), spec_name = 'net')
     
-        norm_spec3 = normalize_spec.manually_remove_CR(wl3, net3, flt = os.path.join(base_dir, 'combined_dithered_images/%s_%i_combined_img.fits') %(pyfits.getval(ccd3, 'targname', 0)[5:], pyfits.getval(ccd3, 'cenwave', 0)))
+        norm_spec3 = normalize_spec.manually_remove_CR(wl3, net3, flt = os.path.join(base_dir, 'combined_dithered_images/%s_%i_combined_img.fits' %(pyfits.getval(ccd3, 'targname', 0)[5:], pyfits.getval(ccd3, 'cenwave', 0))))
         write_fits_file(ccd3.replace('.fits', '_crj.fits'), wl3, net3, pyfits.getheader(ccd3, 0), spec_name = 'net')
     
-        norm_spec4 = normalize_spec.manually_remove_CR(wl4, net4, flt = os.path.join(base_dir, 'combined_dithered_images/%s_%i_combined_img.fits') %(pyfits.getval(ccd4, 'targname', 0)[5:], pyfits.getval(ccd4, 'cenwave', 0)))
+        norm_spec4 = normalize_spec.manually_remove_CR(wl4, net4, flt = os.path.join(base_dir, 'combined_dithered_images/%s_%i_combined_img.fits' %(pyfits.getval(ccd4, 'targname', 0)[5:], pyfits.getval(ccd4, 'cenwave', 0))))
         write_fits_file(ccd4.replace('.fits', '_crj.fits'), wl4, net4, pyfits.getheader(ccd4, 0), spec_name = 'net')
     
     
