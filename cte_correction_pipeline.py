@@ -20,11 +20,8 @@ def apply_herringbone_correction(input_dir, input_flist, output_dir = None):
     if not output_dir:
         output_dir = input_dir
     #Clean out herringbone directory
-    cur_dir = os.getcwd()
-    os.chdir(herringbone_dir)
-    flist = glob.glob('PSUB/*')+glob.glob('CLEAN/*') + glob.glob('TABLES/*') + glob.glob('ORIG/*') + glob.glob('FAILED/*')
-    for ifile in flist:
-        os.remove(ifile)    
+    print 'Removing old files from herringbone correction folder'
+    clean_herringbone_folders()
     #Copy files to the ORIG directory in the herringbone_correction folder
     for ifile in input_flist:
         shutil.copy(os.path.join(input_dir, ifile), 'herringbone_correction/ORIG/%s' %(ifile))
@@ -42,6 +39,14 @@ def apply_herringbone_correction(input_dir, input_flist, output_dir = None):
     print 'HERRINGBONE CORRECTION APPLIED '
     print '\tinput directory = %s' %(input_dir)
     print '\toutput directory = %s' %(output_dir)
+
+def clean_herringbone_folders():
+    cur_dir = os.getcwd()
+    os.chdir(herringbone_dir)
+    flist = glob.glob('PSUB/*')+glob.glob('CLEAN/*') + glob.glob('TABLES/*') + glob.glob('ORIG/*') + glob.glob('FAILED/*')
+    for ifile in flist:
+        os.remove(ifile)    
+    os.chdir(cur_dir)
 
 def create_reference_file(input_dir, input_flist):
     '''
