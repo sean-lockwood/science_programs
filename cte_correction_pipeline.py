@@ -5,6 +5,7 @@ import sys
 import pyfits
 import numpy as np
 import pdb
+import time
 
 
 
@@ -18,6 +19,12 @@ def apply_herringbone_correction(input_dir, input_flist, output_dir = None):
     '''
     if not output_dir:
         output_dir = input_dir
+    #Clean out herringbone directory
+    cur_dir = os.getcwd()
+    os.chdir(herringbone_dir)
+    flist = glob.glob('PSUB/*')+glob.glob('CLEAN/*') + glob.glob('TABLES/*') + glob.glob('ORIG/*') + glob.glob('FAILED/*')
+    for ifile in flist:
+        os.remove(ifile)    
     #Copy files to the ORIG directory in the herringbone_correction folder
     for ifile in input_flist:
         shutil.copy(os.path.join(input_dir, ifile), 'herringbone_correction/ORIG/%s' %(ifile))
@@ -51,16 +58,18 @@ def create_reference_file(input_dir, input_flist):
     month_begin = np.min(date)
     month_end = np.max(date)
     REFSTIS_wrapper.separate_obs(input_dir, month_begin, month_end)
+    start = time.time()
     REFSTIS_wrapper.make_ref_files(input_dir)
-    
+    end = time.time()
+    print 'RUNTIME = %f minutes' %((end - start)/60.0) 
     #Copy reference file from each week folder to the reffiles folder
-    os.path.walk(input_dir, copy_reference_files, '')   
+    os.path.walk(input_dir, copy_reference_files_to_reffiles, '')   
 
-def copy_reference_files(junk, dirname, junk2):
+def copy_reference_files_to_reffiles(junk, dirname, junk2):
     '''
     This function copies super bias and super dark reference files to the reffiles folder
     '''
-    flist = glob.glob(os.path.join(dirname, 'ref*.fits'))
+    flist = glob.glob(os.path.join(dirname, 'ref*.fits')) + glob.glob(os.path.join(dirname, 'week*.fits'))
     if len(flist) > 0:
         for ifile in flist:
             shutil.copy(ifile, os.path.join(cur_dir, 'reffiles', ifile.split('/')[-1]))
@@ -81,11 +90,17 @@ def calibrate_data_with_cte_correction(input_flist, header_tup = None):
     run_cte_correction_code(input_flist)
     run_calstis_part2(input_flist)
 
+def determine_correct_reference_files(input_dir, input_list):
+    for ifile in flist:
+        filename = os.path.join(input_dir, ifile)
+        date = pyfits.getval(ifile, 'expstart', 0)
+        
+
 def copy_relevant_reference_files(reffile_list, output_dir):
     '''
     This file copies all reference files in reffile_list from reffiles to output_dir
     '''
-    pass
+    
 
 def update_header_keywords(input_flist, header_tup):
     '''
@@ -139,14 +154,14 @@ if __name__ == "__main__":
 
     
     #Create Superbias
-    create_reference_file('bias', flist_bias)
-    '''
+    #create_reference_file('bias', flist_bias)
+    
     #Herringbone correct Dark files
     os.chdir('dark')
     flist_dark = glob.glob('*raw.fits')
     os.chdir(cur_dir)
     apply_herringbone_correction('dark', flist_dark)
-
+    '''pwd
     #CTE correct and calibrate Dark files with new superbias
     calibrate_data_with_cte_correction(flist_dark, header_tup = [('pcttab', 'stis_apr_2012_pcte.fits'), ('biasfile', 'superbias.fits')])
     #Create Superdark
