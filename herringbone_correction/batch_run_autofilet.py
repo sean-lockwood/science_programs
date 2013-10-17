@@ -200,7 +200,13 @@ def build_inventory():
     warning = np.array([bool(warn) for warn in np.copy(rootname)])
     new_image_flag = True
     indx = 0
-    for iline in all_lines:
+    new_run_indices = np.where(np.array(all_lines) == 'NEW RUN STARTS HERE\n')
+    if len(new_run_indices) < 1:
+        new_run_indx == 0
+    else:
+        new_run_indx = new_run_indices[0][-1]
+
+    for iline in all_lines[new_run_indx:]:
         if 'image=' in iline:
             new_image_flag = True
             tmp_rootname = iline.split('=')[1][5:-11]  #get just the rootname
@@ -210,16 +216,17 @@ def build_inventory():
             tmp_warning = True
             new_image_flag = False
         elif ('elapsed' in iline): #processing finished normally
-            #indx = np.where(rootname == tmp_rootname)
             warning[indx] = tmp_warning
             extn[indx] = tmp_ext
             indx += 1
+
         elif ('ERROR' in iline):
             print iline
     warning = np.array([bool(warn) for warn in warning])
     extn = np.array(extn)
     rootname = np.array(rootname)
-    #pdb.set_trace()
+    if indx != len(rootname):
+        print '!!!!!!!!!!!!!!!!\nWARNING, there are %i files in PSUB, but only %i are being rebuilt\n!!!!!!!!!!!!!!!!' %(len(rootname), indx)
     return rootname, extn, warning
 
             
@@ -256,6 +263,7 @@ def rebuild_files(interactive = False, failed_files = []):
 
     Known Issues:
         This code may cut off the last n in the comment for HPATPARS
+        This code only rebuilds datasets which are newly processed as part of this run.
     '''
     #warn users that this is not being run interactively
     if not interactive:
