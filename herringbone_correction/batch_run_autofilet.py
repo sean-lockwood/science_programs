@@ -1,4 +1,7 @@
-import pyfits
+try:
+    import pyfits
+except:
+    from astropy.io import fits as pyfits
 import glob
 import os
 import subprocess
@@ -129,7 +132,7 @@ def autofilet():
     inventory.write("#========================================================================================================================================================================================================================================================\n")
     #Loop over all raw files
     
-    for ifile in orig_list:
+    for ifile in orig_list[::-1]:
         ext_array = get_extn_nums(ifile) #get the ext numbers of the science extensions; it is assumed that this is every third one starting with 1
         #Set different inputs for different types of files
         if ifile.split('_')[1] == 'wav.fits':
@@ -149,33 +152,85 @@ def autofilet():
         #write information to inventory file
         inventory = write_inventory(ifile, inventory, xord, yord, ext_array)
         #Loop over science extensions in each file
+
         for extn in ext_array:
-            terminate_early = 'n'
-            
+            success = False       
+            nloop = 1
             output_file = ifile.replace('ORIG', 'PSUB').replace('raw', 'rwc_%i' %(extn)).replace('wav', 'wav_rwc_%i'%(extn))
             if not os.path.exists(output_file):
-                sys.stdout = autofilet_log
+                
                 table_file = ifile.replace('ORIG', 'TABLES').replace('raw.fits', 'fps_%i' %(extn)).replace('wav.fits', 'wav_fps_%i'%(extn)) 
                 #Call IDL routine autofilet with the appropriate inputs
-                write_idl_file(ifile, output_file, table_file, extn, xord, yord)
-                autofilet_call = subprocess.Popen('/grp/software/Linux/itt/idl/idl81/bin/idl -quiet tmp_idl.pro', shell = True) #, stdout = autofilet_log, bufsize = -1) #, stderr = autofilet_log)
-                sys.stdout = sys.__stdout__                
-                nwait = 0
-                while autofilet_call.poll() is None:  #if the code hasn't finished in 3 minutes, terminate it #NOTE THIS PIECE OF CODE HAS NOT BEEN TESTED B/C THE CODE HAS NOT HUNG
-                    print autofilet_call.poll()
-                    time.sleep(30)
-                    nwait += 1
-                    if nwait == 7:
-                        autofilet_call.terminate()  #check to see if terminate or kill is better here
-                        terminate_early = 'y'
-                        break
-                autofilet_call.wait()
+                while not success:
+                    sys.stdout = autofilet_log
+                    write_idl_file(ifile, output_file, table_file, extn, xord, yord)
+                    autofilet_call = subprocess.Popen('/grp/software/Linux/itt/idl/idl81/bin/idl -quiet tmp_idl.pro', shell = True) 
+                    sys.stdout = sys.__stdout__                
+                    nwait = 0
+                    while autofilet_call.poll() is None:  #if the code hasn't finished in 3 minutes, terminate it 
+                        time.sleep(30)
+                        nwait += 1
+                        if nwait == 7:
+                            autofilet_call.terminate()  #check to see if terminate or kill is better here; this ends the while auto... loop
+                    
+                            #15  4           <-- if a hang occurs, retry with   17  4 ,  17  5 ,  18  5
+                            # 6  6           <-- if a hang occurs, retry with    7  7 ,   6  8 ,   7  8
+                            #15 29           <-- if a hang occurs, retry with   15 31 ,  17 29 ,  16 30
+                            # 6 15           <-- if a hang occurs, retry with    6 17 ,   7 15 ,   7 16
 
-                if terminate_early == 'y':
-                    autofilet_log = open('autofilet.log', 'a', 0)
-                    autofilet_log.write('ERROR: %s, ext = %i was terminated because autofilet had not finished after 3 minutes, no output written \n' %(ifile, extn))
-                    autofilet_log.flush()
-                    autofilet_log.close()
+                            #autofilet_log = open('autofilet.log', 'a', 0)
+                            autofilet_log.write('ERROR: %s, ext = %i xord = %i yord = %i was terminated because autofilet had not finished after 3 minutes, no output written. \n' %(ifile, extn, xord, yord))
+                            
+                            if (xord == 15) and (yord == 4):
+                                xord = 17
+                                yord = 4
+                            elif (xord == 6) and (yord == 6):
+                                xord = 7
+                                yord = 7
+                            elif (xord == 15) and (yord == 29):
+                                xord = 15
+                                yord = 29
+                            elif (xord == 6) and (yord == 15):
+                                xord = 6
+                                yord = 17
+
+                            elif (xord == 17) and (yord == 4):
+                                xord = 17
+                                yord = 5
+                            elif (xord == 7) and (yord == 7):
+                                xord = 6
+                                yord = 8
+                            elif (xord == 15) and (yord == 31):
+                                xord = 17
+                                yord = 29
+                            elif (xord == 6) and (yord == 17):
+                                xord = 7
+                                yord = 15
+
+                            elif (xord == 17) and (yord == 5):
+                                xord = 18
+                                yord = 5
+                            elif (xord == 6) and (yord == 8):
+                                xord = 7
+                                yord = 8
+                            elif (xord == 17) and (yord == 29):
+                                xord = 16
+                                yord = 30
+                            elif (xord == 7) and (yord == 15):
+                                xord = 7
+                                yord = 16
+                            elif (xord == 18 and yord == 5) or (xord == 7 and yord == 8) or (xord == 16 and yord == 30) or (xord == 7 and yord == 16):
+                                print xord, yord
+                                sys.exit('ERROR: %s, ext %i hung during calibration for 4 different xord and yord. Please remove from calibration or manually recalibrate' %(ifile, extn))                    
+                            
+        
+                            autofilet_log.write('\tTrying again with xord = %i, yord = %i. \n' %(xord, yord))
+                            autofilet_log.flush()
+                            success = False
+                        else :
+                            success = True
+                    autofilet_call.wait()
+
                 
     autofilet_log.close()
     inventory.close()
