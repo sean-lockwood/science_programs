@@ -698,7 +698,7 @@ IF ((fflag GT 0) OR (aflag GT 0) OR (wflag GT 0)) THEN BEGIN
          IF ( dwdt GT 16.0 ) THEN BEGIN
             printf,25,'    WARNING:   driftwidth > 16.0 Hz (too large?)',f='(a)'
          ENDIF ELSE BEGIN
-            printf,26,'    WARNING:   driftwidth < 3.0 Hz  (too small?)',f='(a)'
+            printf,25,'    WARNING:   driftwidth < 3.0 Hz  (too small?)',f='(a)'
          ENDELSE
       ENDELSE
    ENDIF
