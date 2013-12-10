@@ -18,12 +18,15 @@ import stistools
 #set cur_dir, refstis_dir, 
 #What do I use programs for?
 
-cur_dir = '/user/bostroem/science/cte/2012_04'
-refstis_dir = '/user/bostroem/science/programs/refstis/'
-ctecorr_dir = '/user/bostroem/science/programs/ctecorr/stis_mac/lib/stistools'
+cur_dir = '/Users/bostroem/science/cte/2012_04'
+refstis_dir = '/Users/bostroem/science/programs/refstis/'
+ctecorr_dir = '/Users/bostroem/science/programs/ctecorr/stis_mac/lib/stistools'
 os.environ['myref'] = os.path.join(cur_dir, 'reffiles')+'/'
+
+os.environ['oref'] = '/Users/bostroem/science/oref/'
+
 herringbone_dir = os.path.join(cur_dir, 'herringbone_correction')
-sys.path.append('/user/bostroem/science/programs')
+sys.path.append('/Users/bostroem/science/programs')
 sys.path.append(herringbone_dir)
 sys.path.append(refstis_dir)
 sys.path.append(ctecorr_dir)
@@ -148,7 +151,8 @@ def calibrate_data_with_cte_correction(input_dir, input_flist):
     try:
         update_reffile_keyword(input_dir, input_flist, 'drk')
     except:
-        pass
+        print 'WARNING: Not updating DARKFILE for files in %s' %(input_dir)
+        pdb.set_trace()
     add_pctetab_to_headers(input_dir, input_flist)
     run_calstis_part1(input_dir, input_flist)
     run_cte_correction_code(input_dir, input_flist)
@@ -209,8 +213,8 @@ def determine_correct_reference_files(input_dir, input_list, filetype):
         dates.append(pyfits.getval(filename, 'texpend', 0))
     data_start = min(dates)
     data_end = max(dates)
-    anneal_weeks_4 = divide_anneal_month(data_start, data_end, '/grp/hst/stis/calibration/anneals/', 4)
-    anneal_weeks_2 = divide_anneal_month(data_start, data_end, '/grp/hst/stis/calibration/anneals/', 2)
+    anneal_weeks_4 = divide_anneal_month(data_start, data_end, '/Users/bostroem/science/cte/', 4)
+    anneal_weeks_2 = divide_anneal_month(data_start, data_end, '/Users/bostroem/science/cte/', 2)
     #nested dictionary: gain, binaxis1, binaxis2, week
                 #gain
     mode_dict = {1:
@@ -291,7 +295,7 @@ def run_cte_correction_code(input_dir, input_flist):
 def run_calstis_part2(input_dir, input_flist):
     '''
     This function finishes running calstis on the CTE corrected data. Note: CTECORR should be
-    set to OMIT
+    set to OMIT or COMPLETE
     '''
     #biacorr, blevcorr, and dqicorr are set to complete after part1 is called. I can call calstis
     log = open('calstis_log.txt', 'a')
@@ -299,16 +303,16 @@ def run_calstis_part2(input_dir, input_flist):
     log.close()
     for ifile in input_flist:
         filename = os.path.join(input_dir, ifile)
-        stistools.calstis.calstis(filename.replace('raw', 'flc'), trailer = 'calstis_log.txt')
+        assert pyfits.getval(filename.replace('raw', 'flc'), 'ctecorr', 0).upper() != 'PERFORM', 'CTECORR = PERFORM in %s' %(filename)
+        wavecal = os.path.join(input_dir, pyfits.getval(filename, 'wavecal', 0))
+        stistools.calstis.calstis(filename.replace('raw', 'flc'), trailer = 'calstis_log.txt', wavecal = wavecal)
 
 def add_pctetab_to_headers(input_dir, input_flist):
     for ifile in input_flist:
         pyfits.setval(os.path.join(input_dir, ifile), 'PCTETAB', ext = 0, value = 'myref$%s' %(pctetab))
 
-if __name__ == "__main__":
 
-
-    os.chdir(cur_dir)
+def make_biasfile():
     start = time.time()
     #Herringbone correct Bias files
     os.chdir('bias')
@@ -323,6 +327,7 @@ if __name__ == "__main__":
     end = time.time()
     print 'RUNTIME BIAS = %f minutes' %((end - start)/60.0) 
 
+def make_darkfile():
     start = time.time()
     #Herringbone correct Dark files
     os.chdir('dark')
@@ -337,8 +342,10 @@ if __name__ == "__main__":
     #Create Superdark
     create_reference_file('dark', flist_dark)
     end = time.time()
-    print 'RUNTIME DARK = %f minutes' %((end - start)/60.0)     
+    print 'RUNTIME DARK = %f minutes' %((end - start)/60.0)   
 
+
+def correct_science_data():
     start = time.time()
     #Herringbone correct science data
     os.chdir('sci_data')
@@ -349,4 +356,19 @@ if __name__ == "__main__":
     calibrate_data_with_cte_correction(os.path.join(cur_dir, 'sci_data'), flist_sci)
     end = time.time()
     print 'RUNTIME Science= %f minutes' %((end - start)/60.0) 
+
+
+
+
+if __name__ == "__main__":
+    os.chdir(cur_dir)
+    #make_biasfile()
+    #make_darkfile()
+    correct_science_data()
+
+
+
+  
+
+
     
