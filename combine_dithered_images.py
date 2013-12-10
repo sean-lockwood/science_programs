@@ -121,6 +121,8 @@ def combine_dithered_images(dec_dict, targ_dec, use_hdr_offset):
         end1 = np.shape(img1)[0]
         start2 = max_lag
         end2 = np.shape(img1)[0] + max_lag
+        if not use_hdr_offset:
+            pdb.set_trace()
         create_new_combined_arrays(img1, img2, err1, err2, dq1, dq2, start1, end1, start2, end2, ofile1[0].header, ofile1[1].header, ofile1[2].header, ofile1[3].header, ofile2[0].header, ofile2[1].header, ofile2[2].header, ofile2[3].header)
 
     else:
@@ -128,6 +130,8 @@ def combine_dithered_images(dec_dict, targ_dec, use_hdr_offset):
         end1 = np.shape(img1)[0]
         start2 = np.abs(max_lag)
         end2 = np.shape(img1)[0]+np.abs(max_lag)
+        if not use_hdr_offset:
+            pdb.set_trace()
         create_new_combined_arrays(img2, img1, err2, err1, dq2, dq1, start1, end1, start2, end2, ofile2[0].header, ofile2[1].header, ofile2[2].header, ofile2[3].header, ofile1[0].header, ofile1[1].header, ofile1[2].header, ofile1[3].header)
 
     #Write fits file
@@ -233,10 +237,11 @@ def make_combined_fits(hdr0, hdr1, hdr2, hdr3, new_img, new_err, new_dq, cenwave
 
 if __name__ == "__main__":
 
-    os.environ['oref'] = '/grp/hst/cdbs/oref/'
+    os.environ['oref'] = '/Users/bostroem/science/oref/'
     parser = OptionParser()
     parser.add_option('--UseHeader', dest = 'use_hdr_offset', action = 'store_true', help = 'Set the dithered offset in pixels', default = False)
     (options, args) = parser.parse_args()
+    '''
     #for the FUV data
     idir = '/user/bostroem/science/12465_otfr20120425/mama/'
 
@@ -247,43 +252,45 @@ if __name__ == "__main__":
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
     pdb.set_trace()
+    '''
     #idir = '/Users/bostroem/science/12465_otfr20121109/ccd/'
-    idir = '/user/bostroem/science/12465_otfr20121109/ccd/'
+    #idir = '/user/bostroem/science/12465_otfr20130503/ccd/'
+    idir = '/Users/bostroem/science/2014_dc_aas/'
     os.chdir(idir)
     iraf.chdir(idir)
     
 
-    
+'''    
     flist = glob.glob('obrc06*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-    
+'''    
     flist = glob.glob('obrc01*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-
+'''
     flist = glob.glob('obrc07*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-
+'''
     flist = glob.glob('obrc02*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-
+'''
     flist = glob.glob('obrc08*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-
+'''
     flist = glob.glob('obrc03*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-
+'''
     flist = glob.glob('obrc09*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
@@ -293,10 +300,12 @@ if __name__ == "__main__":
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
+'''
 
-    
+
     #obrc01, obrc07: 3936
     #obrc02, obrc08: 4451
     #obrc03, obrc09: 4706
     #obzk01: 4194
+    #obzk02: 4194
 
