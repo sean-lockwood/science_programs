@@ -260,37 +260,37 @@ if __name__ == "__main__":
     iraf.chdir(idir)
     
 
-'''    
+    '''    
     flist = glob.glob('obrc06*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-'''    
-    flist = glob.glob('obrc01*_flt.fits')#+glob.glob('ob???????_flt.fits')
+    '''    
+    flist = glob.glob('obrc01*_flc_flt.fits')#+glob.glob('ob???????_flc_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-'''
+    '''
     flist = glob.glob('obrc07*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-'''
-    flist = glob.glob('obrc02*_flt.fits')#+glob.glob('ob???????_flt.fits')
+    '''
+    flist = glob.glob('obrc02*_flc_flt.fits')#+glob.glob('ob???????_flc_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-'''
+    '''
     flist = glob.glob('obrc08*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-'''
-    flist = glob.glob('obrc03*_flt.fits')#+glob.glob('ob???????_flt.fits')
+    '''
+    flist = glob.glob('obrc03*_flc_flt.fits')#+glob.glob('ob???????_flc_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-'''
+    '''
     flist = glob.glob('obrc09*_flt.fits')#+glob.glob('ob???????_flt.fits')
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
@@ -300,7 +300,7 @@ if __name__ == "__main__":
     dec_dict = make_declination_dict(flist)
     for targ_dec in dec_dict.keys():
         combine_dithered_images(dec_dict, targ_dec, options.use_hdr_offset)
-'''
+    '''
 
 
     #obrc01, obrc07: 3936
