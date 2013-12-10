@@ -10,10 +10,12 @@ from optparse import OptionParser
 from scipy.interpolate import LSQUnivariateSpline
 
 
-import pyraf
-from pyraf import iraf
-from iraf import stsdas,hst_calib,stis,x1d
+#import pyraf
+#from pyraf import iraf
+#from iraf import stsdas,hst_calib,stis,x1d
 
+import stistools
+from stistools.x1d import x1d
 
 def collapse_spectrum(img, num_cols):
     '''Collapse 2D spectrum in the dispersion direction to create a cross dispersion profile'''
@@ -203,9 +205,12 @@ def extract_spectrum(input, extrlocy, extract_box_size, background_loc1, backgro
     if os.path.exists(os.path.join(os.getcwd(), input.filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))))):
         os.remove(os.path.join(os.getcwd(), input.filename.replace('.fits', '_loc%i.fits' %(int(extrlocy)))))
         
-    iraf.stsdas.hst_calib.stis.x1d(input.filename.replace('.fits', 'sub.fits'), output = input.filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))), \
-                                       a2center = extrlocy + 1, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
-                                       bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option, bksmode = bksmode_option)  #a2center is 1 indexed
+    #iraf.stsdas.hst_calib.stis.x1d(input.filename.replace('.fits', 'sub.fits'), output = input.filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))), \
+    #                                  a2center = extrlocy + 1, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
+    #                                   bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option, bksmode = bksmode_option)  #a2center is 1 indexed
+    x1d(input.filename.replace('.fits', 'sub.fits'), output = input.filename.replace('.fits', '_loc%i.fits' %(int(extrlocy))), \
+                                      a2center = extrlocy + 1, extrsize = extract_box_size, maxsrch = 0, bk1offst = background_loc1 - extrlocy, \
+                                       bk2offst = background_loc2 - extrlocy, bk1size = background_size1, bk2size = background_size2, backcorr = backcorr_option, bksmode = bksmode_option)
     add_background_into_x1d(input.filename, fit, extrlocy)
 
 def add_background_into_x1d(filename, fit, extrlocy):
@@ -264,8 +269,11 @@ if __name__ == "__main__":
     pyplot.ion()  #turn plotting on 
     if os.path.exists('/grp/hst/cdbs/oref'):
         os.environ['oref'] = '/grp/hst/cdbs/oref/' #set oref environment variable to point to reference file location
+        os.environ['myref'] = '/user/bostroem/science/cte/2012_04/reffiles/'
     else:
         os.environ['oref'] = '/Users/bostroem/science/oref/'
+        os.environ['myref'] = '/Users/bostroem/science/cte/2012_04/reffiles/'
+
     parser = OptionParser()
     parser.add_option('--backcorr', dest = 'backcorr', help = 'Enter perform (default) or omit to perform or omit the background subtraction in CalSTIS x1d', default = 'perform')
     parser.add_option('--ncol', dest = 'num_cols', type = 'float', help = 'Number of columns summed when examining the cross-dispersion profile', default = 50)
@@ -273,6 +281,7 @@ if __name__ == "__main__":
     parser.add_option('--mode', dest = 'mode', help = 'Run program interactively or not - options: interactive, passive', default = 'interactive')
     (options, args) = parser.parse_args()
     
+    print options.bksmode
     #read in command line arguments
     filename = sys.argv[1]
     try:
