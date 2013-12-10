@@ -216,8 +216,9 @@ def extract_spectrum(input, extrlocy, extract_box_size, background_loc1, backgro
 def add_background_into_x1d(filename, fit, extrlocy):
     '''Add the fitted background back into the gross and background columns of the extracted spectrum'''
     ofile = pyfits.open(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i.fits' %(int(extrlocy)))), mode = 'update')
-    ofile[1].data['gross'][:] = ofile[1].data['gross'][:] + fit[int(round(ofile[1].data['a2center'])) - 1] #a2center is 1 indexed
-    ofile[1].data['background'][:] = ofile[1].data['background'][:] + fit[int(round(ofile[1].data['a2center'])) - 1] #a2center is 1 indexed
+    exptime = ofile[0].header['texptime']
+    ofile[1].data['gross'][:] = ofile[1].data['gross'][:] + fit[int(round(ofile[1].data['a2center'])) - 1]/exptime #a2center is 1 indexed, units are cts/s in the x1d, cts in the flt
+    ofile[1].data['background'][:] = ofile[1].data['background'][:] + fit[int(round(ofile[1].data['a2center'])) - 1]/exptime #a2center is 1 indexed
     ofile.flush()
     ofile.close()
 
