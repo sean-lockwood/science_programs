@@ -148,7 +148,7 @@ def calibrate_data_with_cte_correction(input_dir, input_flist):
     try:
         update_reffile_keyword(input_dir, input_flist, 'drk')
     except:
-        pass
+        print 'WARNING: Not updating DARKFILE for files in %s' %(input_dir)
     add_pctetab_to_headers(input_dir, input_flist)
     run_calstis_part1(input_dir, input_flist)
     run_cte_correction_code(input_dir, input_flist)
@@ -305,10 +305,8 @@ def add_pctetab_to_headers(input_dir, input_flist):
     for ifile in input_flist:
         pyfits.setval(os.path.join(input_dir, ifile), 'PCTETAB', ext = 0, value = 'myref$%s' %(pctetab))
 
-if __name__ == "__main__":
 
-
-    os.chdir(cur_dir)
+def make_biasfile():
     start = time.time()
     #Herringbone correct Bias files
     os.chdir('bias')
@@ -323,6 +321,7 @@ if __name__ == "__main__":
     end = time.time()
     print 'RUNTIME BIAS = %f minutes' %((end - start)/60.0) 
 
+def make_darkfile():
     start = time.time()
     #Herringbone correct Dark files
     os.chdir('dark')
@@ -337,8 +336,10 @@ if __name__ == "__main__":
     #Create Superdark
     create_reference_file('dark', flist_dark)
     end = time.time()
-    print 'RUNTIME DARK = %f minutes' %((end - start)/60.0)     
+    print 'RUNTIME DARK = %f minutes' %((end - start)/60.0)   
 
+
+def correct_science_data():
     start = time.time()
     #Herringbone correct science data
     os.chdir('sci_data')
@@ -349,4 +350,19 @@ if __name__ == "__main__":
     calibrate_data_with_cte_correction(os.path.join(cur_dir, 'sci_data'), flist_sci)
     end = time.time()
     print 'RUNTIME Science= %f minutes' %((end - start)/60.0) 
+
+
+
+
+if __name__ == "__main__":
+    os.chdir(cur_dir)
+    #make_biasfile()
+    #make_darkfile()
+    correct_science_data()
+
+
+
+  
+
+
     
