@@ -18,12 +18,15 @@ import stistools
 #set cur_dir, refstis_dir, 
 #What do I use programs for?
 
-cur_dir = '/user/bostroem/science/cte/2012_04'
-refstis_dir = '/user/bostroem/science/programs/refstis/'
-ctecorr_dir = '/user/bostroem/science/programs/ctecorr/stis_mac/lib/stistools'
+cur_dir = '/Users/bostroem/science/cte/2012_04'
+refstis_dir = '/Users/bostroem/science/programs/refstis/'
+ctecorr_dir = '/Users/bostroem/science/programs/ctecorr/stis_mac/lib/stistools'
 os.environ['myref'] = os.path.join(cur_dir, 'reffiles')+'/'
+
+os.environ['oref'] = '/Users/bostroem/science/oref/'
+
 herringbone_dir = os.path.join(cur_dir, 'herringbone_correction')
-sys.path.append('/user/bostroem/science/programs')
+sys.path.append('/Users/bostroem/science/programs')
 sys.path.append(herringbone_dir)
 sys.path.append(refstis_dir)
 sys.path.append(ctecorr_dir)
@@ -209,8 +212,8 @@ def determine_correct_reference_files(input_dir, input_list, filetype):
         dates.append(pyfits.getval(filename, 'texpend', 0))
     data_start = min(dates)
     data_end = max(dates)
-    anneal_weeks_4 = divide_anneal_month(data_start, data_end, '/grp/hst/stis/calibration/anneals/', 4)
-    anneal_weeks_2 = divide_anneal_month(data_start, data_end, '/grp/hst/stis/calibration/anneals/', 2)
+    anneal_weeks_4 = divide_anneal_month(data_start, data_end, '/Users/bostroem/science/cte/', 4)
+    anneal_weeks_2 = divide_anneal_month(data_start, data_end, '/Users/bostroem/science/cte/', 2)
     #nested dictionary: gain, binaxis1, binaxis2, week
                 #gain
     mode_dict = {1:
@@ -291,7 +294,7 @@ def run_cte_correction_code(input_dir, input_flist):
 def run_calstis_part2(input_dir, input_flist):
     '''
     This function finishes running calstis on the CTE corrected data. Note: CTECORR should be
-    set to OMIT
+    set to OMIT or COMPLETE
     '''
     #biacorr, blevcorr, and dqicorr are set to complete after part1 is called. I can call calstis
     log = open('calstis_log.txt', 'a')
@@ -299,7 +302,9 @@ def run_calstis_part2(input_dir, input_flist):
     log.close()
     for ifile in input_flist:
         filename = os.path.join(input_dir, ifile)
-        stistools.calstis.calstis(filename.replace('raw', 'flc'), trailer = 'calstis_log.txt')
+        assert pyfits.getval(filename.replace('raw', 'flc'), 'ctecorr', 0).upper() != 'PERFORM', 'CTECORR = PERFORM in %s' %(filename)
+        wavecal = os.path.join(input_dir, pyfits.getval(filename, 'wavecal', 0))
+        stistools.calstis.calstis(filename.replace('raw', 'flc'), trailer = 'calstis_log.txt', wavecal = wavecal)
 
 def add_pctetab_to_headers(input_dir, input_flist):
     for ifile in input_flist:
@@ -337,7 +342,6 @@ def make_darkfile():
     create_reference_file('dark', flist_dark)
     end = time.time()
     print 'RUNTIME DARK = %f minutes' %((end - start)/60.0)   
-
 
 def correct_science_data():
     start = time.time()
