@@ -152,7 +152,6 @@ def calibrate_data_with_cte_correction(input_dir, input_flist):
         update_reffile_keyword(input_dir, input_flist, 'drk')
     except:
         print 'WARNING: Not updating DARKFILE for files in %s' %(input_dir)
-        pdb.set_trace()
     add_pctetab_to_headers(input_dir, input_flist)
     run_calstis_part1(input_dir, input_flist)
     run_cte_correction_code(input_dir, input_flist)
@@ -343,7 +342,6 @@ def make_darkfile():
     create_reference_file('dark', flist_dark)
     end = time.time()
     print 'RUNTIME DARK = %f minutes' %((end - start)/60.0)   
-
 
 def correct_science_data():
     start = time.time()
