@@ -246,6 +246,17 @@ def confirm_extraction_location(filename, img, extrlocy):
     raw_input('Press enter to close and continue')
     pyplot.close(fig3)
     
+def plot_final_spectrum(filename, extrlocy):
+    fig4 = pyplot.figure(4)
+    ax4 = fig4.add_subplot(1, 1, 1)
+    tbdata = pyfits.getdata(os.path.join(os.getcwd(), filename.replace('.fits', '_loc%i.fits' %(int(extrlocy)))),  1)
+    ax4.plot(tbdata['wavelength'][0], tbdata['flux'][0])
+    ax4.set_xlabel('Wavelength')
+    ax4.set_ylabel('Flux')
+    ax4.set_title('Spectrum for %s @ %i' %(filename, int(extrlocy)))
+    raw_input('Press enter to close and continue')
+    pyplot.close(fig4)
+
 def interact_w_user(mode, default = None, message = None):
     if (mode == 'interactive'): 
         if message is None:
@@ -376,6 +387,9 @@ if __name__ == "__main__":
         confirm_flag = interact_w_user(input.mode, message = 'Would you like to confirm the location of your extraction on a 2D image? (y), n ', default = 'n')
         if confirm_flag != 'n':
             confirm_extraction_location(input.filename, img, extrlocy)
+        final_spec_flag = interact_w_user(input.mode, message = 'Would you like to plot the final spectrum? (y), n ', default = 'n')
+        if final_spec_flag != 'n':
+            plot_final_spectrum(filename, extrlocy)
         another_spectrum_flag = interact_w_user(input.mode, message = 'Extract another spectrum? ', default = 'n')
         i = i + 1
     os.remove(input.filename.replace('.fits', 'sub.fits'))
