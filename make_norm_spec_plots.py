@@ -1,10 +1,10 @@
 import os
-if os.environ['HOST'] == 'pummelo':
+if os.environ['HOST'] == 'pummelo.stsci.edu':
     base_dir = '/Users/bostroem/science'
-elif os.environ['HOST'] == 'satsuma':
+elif os.environ['HOST'] == 'satsuma.stsci.edu':
     base_dir = '/user/bostroem/science'
 else:
-    print 'Computer not recognized, paths will need to be manually updated'
+    print 'Computer not recognized, paths will need to be manually updated, HOST = %s' %(os.environ['HOST'])
 import sys
 sys.path.append(os.path.join(base_dir, 'programs'))
 import normalize_spec
@@ -513,6 +513,164 @@ def make_H35_spec(options, base_dir):
     pdb.set_trace()
     pyplot.savefig(os.path.join(base_dir, '2013_greece/H35_cr_remove_spec.pdf') )
 
+#----------------------------------------------
+
+def make_H42_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0022_G140L.fits')
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H42_NW8_3936_combined_img_loc544.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H42_NW8_4194_combined_img_loc498.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H42_NW8_4451_combined_img_loc543.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H42_NW8_4706_combined_img_loc542.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.5], 'H42', base_dir, bin_flag = options.bin_flag)
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig(os.path.join(base_dir, '2014_dc_aas/H42_cr_remove_spec.pdf') )
+
+def make_H45_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0021_G140L.fits')
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H45_SE7_3936_combined_img_loc558.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H45_SE7_4194_combined_img_loc481.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H45_SE7_4451_combined_img_loc559.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H45_SE7_4706_combined_img_loc556.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.5], 'H45', base_dir, bin_flag = options.bin_flag)
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig(os.path.join(base_dir, '2014_dc_aas/H45_cr_remove_spec.pdf') )
+
+def make_H52_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0019_G140L.fits')
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H52_SE5_3936_combined_img_loc514.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H52_SE5_4194_combined_img_loc527.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H52_SE5_4451_combined_img_loc514.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H52_SE5_4706_combined_img_loc511.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.5], 'H52', base_dir, bin_flag = options.bin_flag)
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig(os.path.join(base_dir, '2014_dc_aas/H52_cr_remove_spec.pdf') )
+
+def make_H64_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0040_G140L.fits')
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H64_NW7_3936_combined_img_loc481.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H64_NW7_4194_combined_img_loc561.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H64_NW7_4451_combined_img_loc480.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H64_NW7_4706_combined_img_loc479.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.6], 'H64', base_dir, bin_flag = options.bin_flag)
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig(os.path.join(base_dir, '2014_dc_aas/H64_cr_remove_spec.pdf') )
+
+def make_H68_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0042_G140L.fits')
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H68_SE4_3936_combined_img_loc606.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H68_SE4_4194_combined_img_loc435.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H68_SE4_4451_combined_img_loc608.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H68_SE4_4706_combined_img_loc604.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.6], 'H68', base_dir, bin_flag = options.bin_flag)
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig(os.path.join(base_dir, '2014_dc_aas/H68_cr_remove_spec.pdf') )
+
+def make_H71_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0041_G140L.fits')
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H71_SE9_3936_combined_img_loc502.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H71_SE9_4194_combined_img_loc539.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H71_SE9_4451_combined_img_loc502.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H71_SE9_4706_combined_img_loc499.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.6], 'H71', base_dir, bin_flag = options.bin_flag)
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig(os.path.join(base_dir, '2014_dc_aas/H71_cr_remove_spec.pdf') )
+
+def make_H75_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0031_G140L.fits')
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H75_NW8_3936_combined_img_loc531.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H75_NW8_4194_combined_img_loc512.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H75_NW8_4451_combined_img_loc531.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H75_NW8_4706_combined_img_loc529.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.5], 'H75', base_dir, bin_flag = options.bin_flag)
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig(os.path.join(base_dir, '2014_dc_aas/H75_cr_remove_spec.pdf') )
+
+def make_H77_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0039_G140L.fits')
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H77_SE6_3936_combined_img_loc517.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H77_SE6_4194_combined_img_loc523.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H77_SE6_4451_combined_img_loc518.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H77_SE6_4706_combined_img_loc515.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.5], 'H77', base_dir, bin_flag = options.bin_flag)
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig(os.path.join(base_dir, '2014_dc_aas/H77_cr_remove_spec.pdf') )
+
+def make_H78_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0038_G140L.fits')
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H78_NW2_3936_combined_img_loc539.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H78_NW3_4194_combined_img_loc503.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H78_NW2_4451_combined_img_loc540.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H78_NW2_4706_combined_img_loc538.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.7], 'H78', base_dir, bin_flag = options.bin_flag)
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig(os.path.join(base_dir, '2014_dc_aas/H78_cr_remove_spec.pdf') )
+
+def make_H90_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0044_G140L.fits')
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H90_NW3_3936_combined_img_loc534.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H90_NW3_4194_combined_img_loc508.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H90_NW3_4451_combined_img_loc534.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H90_NW3_4706_combined_img_loc532.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.7], 'H90', base_dir, bin_flag = options.bin_flag)
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig(os.path.join(base_dir, '2014_dc_aas/H90_cr_remove_spec.pdf') )
+
+def make_H92_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0046_G140L.fits')
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H92_NW6_3936_combined_img_loc526.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H92_NW6_4194_combined_img_loc516.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H92_NW6_4451_combined_img_loc526.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H92_NW6_4706_combined_img_loc524.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.7], 'H92', base_dir, bin_flag = options.bin_flag)
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig(os.path.join(base_dir, '2014_dc_aas/H92_cr_remove_spec.pdf') )
+
+def make_H94_spec(options, base_dir):
+    fuv = os.path.join(base_dir, 'multispec/R136_G140L/star0048_G140L.fits')
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H94_SE6_3936_combined_img_loc525.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H94_SE6_4194_combined_img_loc516.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H94_SE6_4451_combined_img_loc525.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H94_SE6_4706_combined_img_loc522.fits'
+
+    ax1, ax2, ax3, fig = make_plots(fuv, ccd1, ccd2, ccd3, ccd4, options.reject_cr_flag, options.norm_spec_flag, [-0.1, 1.8], [0.6, 1.6], 'H94', base_dir, bin_flag = options.bin_flag)
+    ax1, ax2, ax3 = label_spectrum(ax1, ax2, ax3)
+    pyplot.draw()
+    pdb.set_trace()
+    pyplot.savefig(os.path.join(base_dir, '2014_dc_aas/H94_cr_remove_spec.pdf') )
+
 if __name__ == "__main__":
 
 
@@ -523,6 +681,8 @@ if __name__ == "__main__":
     parser.add_option('--norm', dest = 'norm_spec_flag', action = 'store_false', help = 'Use previously normalized spectrum file', default = True)    
     parser.add_option('--bin', dest = 'bin_flag', action = 'store_true', help = 'Bin data', default = False)
     (options, args) = parser.parse_args()
+
+    #----------------RHODES---------------#
 
     ############## H9/R136 b################
     #make_r136b_spec(options, base_dir)
@@ -547,9 +707,32 @@ if __name__ == "__main__":
     ############## R136/a7################
     #make_r136a7_spec(options, base_dir)
     ############## H58 ################
-    make_H58_spec(options, base_dir)
+    #make_H58_spec(options, base_dir)
 
-
-
+    #-----------DC AAS-------------------#
+    ############## H42 ################
+    #make_H42_spec(options, base_dir)
+    ############## H45 ################
+    #make_H45_spec(options, base_dir)
+    ############## H52 ################
+    #make_H52_spec(options, base_dir)
+    ############## H64 ################
+    #make_H64_spec(options, base_dir)
+    ############## H68 ################
+    #make_H68_spec(options, base_dir)
+    ############## H71 ################
+    #make_H71_spec(options, base_dir)
+    ############## H75 ################
+    #make_H75_spec(options, base_dir)
+    ############## H77 ################
+    #make_H77_spec(options, base_dir)
+    ############## H78 ################
+    make_H78_spec(options, base_dir)
+    ############## H90 ################
+    #make_H90_spec(options, base_dir)
+    ############## H92 ################
+    #make_H92_spec(options, base_dir)
+    ############## H94 ################
+    #make_H94_spec(options, base_dir)
 
     
