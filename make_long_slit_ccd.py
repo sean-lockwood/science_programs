@@ -58,7 +58,7 @@ def make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, offset):
     '''
 
     #Create figure and axis objects
-    fig = pyplot.figure(figsize = [8, 17])
+    fig = pyplot.figure(figsize = [6, 17])
     ax1 = fig.add_subplot(1, 17, 1)
     ax2 = fig.add_subplot(1, 17, 2)
     ax3 = fig.add_subplot(1, 17, 3)
@@ -135,7 +135,7 @@ def make_3963_plot(ymin, ymax, vmin, vmax):
         glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_3936_combined_img.fits') + \
         glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_3936_combined_img.fits.gz')
     title = 'Long Slit Image G430M 3963'
-    ax_list3963, fig3963 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 20)
+    ax_list3963, fig3963 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 13)
     fig3963.savefig('/user/bostroem/science/'+'_'.join(title.split())+'.pdf')
 
 def make_4194_plot(ymin, ymax, vmin, vmax):
@@ -146,7 +146,7 @@ def make_4194_plot(ymin, ymax, vmin, vmax):
         glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_4194_combined_img.fits') + \
         glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_4194_combined_img.fits.gz')
     title = 'Long Slit Image G430M 4194'
-    ax_list4194, fig4194 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 7)
+    ax_list4194, fig4194 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 11)
     fig4194.savefig('/user/bostroem/science/'+'_'.join(title.split())+'.pdf')
 def make_4451_plot(ymin, ymax, vmin, vmax):
     ###############
@@ -156,7 +156,7 @@ def make_4451_plot(ymin, ymax, vmin, vmax):
         glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_4451_combined_img.fits') + \
         glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_4451_combined_img.fits.gz')
     title = 'Long Slit Image G430M 4451'
-    ax_list4451, fig4451 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 20)
+    ax_list4451, fig4451 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 13)
     fig4451.savefig('/user/bostroem/science/'+'_'.join(title.split())+'.pdf')
 def make_4709_plot(ymin, ymax, vmin, vmax):
 ###############
@@ -166,7 +166,7 @@ def make_4709_plot(ymin, ymax, vmin, vmax):
         glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_4706_combined_img.fits') + \
         glob.glob('/user/bostroem/science/12465_otfr20130503/ccd/???_4706_combined_img.fits.gz')
     title = 'Long Slit Image G430M 4706'
-    ax_list4706, fig4706 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 15)
+    ax_list4706, fig4706 = make_long_slit_img(flist, title, ymin, ymax, vmin, vmax, 11)
     fig4706.savefig('/user/bostroem/science/'+'_'.join(title.split())+'.pdf')
 
 #-----------------------------------------------
@@ -183,10 +183,13 @@ def make_4709_plot(ymin, ymax, vmin, vmax):
 
 #Sets the y-limits - these values give you the center of the cluster
 ymin = 450
-ymax = 580
+#ymax = 580
+ymax = 630
+#ymin = 0
+#ymax = 1036
 #set the contrast limits: vmax and vmin
 #To set individually for each slit position, do this in make_long_slit_img
-vmax = 1000
+vmax = 800
 vmin = 0
 #Define list of files, set title, and create and save figure
 
@@ -194,7 +197,6 @@ make_3963_plot(ymin, ymax, vmin, vmax)
 make_4194_plot(ymin, ymax, vmin, vmax)
 make_4451_plot(ymin, ymax, vmin, vmax)
 make_4709_plot(ymin, ymax, vmin, vmax)
-
 
 
 
