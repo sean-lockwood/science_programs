@@ -5,7 +5,9 @@ from degrade import degrader
 import normalize_spec
 import numpy as np
 
-def plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, offset, ax_ccd, ax_fuv):
+def plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, offset, ax_ccd, ax_fuv, fuv_offset = None):
+    if not fuv_offset:
+        fuv_offset = offset
 
     tbdata1 = pyfits.getdata(ccd1, 1)
     print tbdata1.names
@@ -28,7 +30,7 @@ def plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, offset, ax_ccd, ax_fuv):
     wl5 = tbdata5['wavelength'].ravel()
     net5 = tbdata5['flux'].ravel()
     
-    ax_fuv.plot(wl5, net5+offset, c = 'k')
+    ax_fuv.plot(wl5, net5+fuv_offset, c = 'k')
     ax_fuv.set_xlim(1150, 1700)
     ax_fuv.set_ylim(-0.1, 2.3+offset)
 
@@ -108,67 +110,66 @@ def label_spectrum(ax_fuv, ax_ccd):
 
 
     line_dict = normalize_spec.apply_redshift(HeI_dict, 268.0E3)
-    normalize_spec.mark_spectrum(HeI_dict, ax_fuv, 'r', offset = 8)
-    normalize_spec.mark_spectrum(HeI_dict, ax_ccd, 'r', offset = 8)
+    normalize_spec.mark_spectrum(HeI_dict, ax_fuv, 'r', offset = 8, yscale = 50.0)
+    normalize_spec.mark_spectrum(HeI_dict, ax_ccd, 'r', offset = 8, yscale = 50.0)
 
 
     line_dict = normalize_spec.apply_redshift(HeII_dict, 268.0E3)
-    normalize_spec.mark_spectrum(HeII_dict, ax_fuv, 'r', offset = 11)
-    normalize_spec.mark_spectrum(HeII_dict, ax_ccd, 'r', offset = 11)
+    normalize_spec.mark_spectrum(HeII_dict, ax_fuv, 'r', offset = 11, yscale = 50.0)
+    normalize_spec.mark_spectrum(HeII_dict, ax_ccd, 'r', offset = 11, yscale = 50.0)
 
     line_dict = normalize_spec.apply_redshift(HeI_II_dict, 268.0E3)
-    normalize_spec.mark_spectrum(HeI_II_dict, ax_fuv, 'r')
-    normalize_spec.mark_spectrum(HeI_II_dict, ax_ccd, 'r')
+    normalize_spec.mark_spectrum(HeI_II_dict, ax_fuv, 'r', yscale = 50.0)
+    normalize_spec.mark_spectrum(HeI_II_dict, ax_ccd, 'r', yscale = 50.0)
 
     line_dict = normalize_spec.apply_redshift(NIII_dict, 268.0E3)
-    normalize_spec.mark_spectrum(NIII_dict, ax_fuv, 'purple')
-    normalize_spec.mark_spectrum(NIII_dict, ax_ccd, 'purple')
+    normalize_spec.mark_spectrum(NIII_dict, ax_fuv, 'purple', yscale = 50.0)
+    normalize_spec.mark_spectrum(NIII_dict, ax_ccd, 'purple', yscale = 50.0)
 
     line_dict = normalize_spec.apply_redshift(NV_dict, 268.0E3)
-    normalize_spec.mark_spectrum(NV_dict, ax_fuv, 'purple')
-    normalize_spec.mark_spectrum(NV_dict, ax_ccd, 'purple')
+    normalize_spec.mark_spectrum(NV_dict, ax_fuv, 'purple', yscale = 50.0)
+    normalize_spec.mark_spectrum(NV_dict, ax_ccd, 'purple', yscale = 50.0)
 
     line_dict = normalize_spec.apply_redshift(NIV_dict, 268.0E3)
-    normalize_spec.mark_spectrum(NIV_dict, ax_fuv, 'purple')
-    normalize_spec.mark_spectrum(NIV_dict, ax_ccd, 'purple')
+    normalize_spec.mark_spectrum(NIV_dict, ax_fuv, 'purple', yscale = 50.0)
+    normalize_spec.mark_spectrum(NIV_dict, ax_ccd, 'purple', yscale = 50.0)
 
 
     line_dict = normalize_spec.apply_redshift(CIII_dict, 268.0E3)
-    normalize_spec.mark_spectrum(CIII_dict, ax_fuv, 'g', offset = 12)
-    normalize_spec.mark_spectrum(CIII_dict, ax_ccd, 'g', offset = 12)
+    normalize_spec.mark_spectrum(CIII_dict, ax_fuv, 'g', offset = 12, yscale = 50.0)
+    normalize_spec.mark_spectrum(CIII_dict, ax_ccd, 'g', offset = 12, yscale = 50.0)
 
     line_dict = normalize_spec.apply_redshift(SiIV_dict, 268.0E3)
-    normalize_spec.mark_spectrum(SiIV_dict, ax_fuv, 'c')
-    normalize_spec.mark_spectrum(SiIV_dict, ax_ccd, 'c')
+    normalize_spec.mark_spectrum(SiIV_dict, ax_fuv, 'c', yscale = 50.0)
+    normalize_spec.mark_spectrum(SiIV_dict, ax_ccd, 'c', yscale = 50.0)
 
     line_dict = normalize_spec.apply_redshift(balmer_dict, 268.0E3)
-    normalize_spec.mark_spectrum(balmer_dict, ax_fuv, 'brown', offset = 9.0)
-    normalize_spec.mark_spectrum(balmer_dict, ax_ccd, 'brown', offset = 9.0)
+    normalize_spec.mark_spectrum(balmer_dict, ax_fuv, 'brown', offset = 9.0, yscale = 50.0)
+    normalize_spec.mark_spectrum(balmer_dict, ax_ccd, 'brown', offset = 9.0, yscale = 50.0)
 
     line_dict = normalize_spec.apply_redshift(CIV_dict, 268.0E3)
-    normalize_spec.mark_spectrum(CIV_dict, ax_fuv, 'g')
-    normalize_spec.mark_spectrum(CIV_dict, ax_ccd, 'g')
+    normalize_spec.mark_spectrum(CIV_dict, ax_fuv, 'g', yscale = 50.0)
+    normalize_spec.mark_spectrum(CIV_dict, ax_ccd, 'g', yscale = 50.0)
 
     line_dict = normalize_spec.apply_redshift(OV_dict, 268.0E3)
-    normalize_spec.mark_spectrum(OV_dict, ax_fuv, '#FF66CC')
-    normalize_spec.mark_spectrum(OV_dict, ax_ccd, '#FF66CC')
+    normalize_spec.mark_spectrum(OV_dict, ax_fuv, '#FF66CC', yscale = 50.0)
+    normalize_spec.mark_spectrum(OV_dict, ax_ccd, '#FF66CC', yscale = 50.0)
 
     line_dict = normalize_spec.apply_redshift(ISM_dict, 268.0E3)
-    normalize_spec.mark_spectrum(ISM_dict, ax_fuv, 'gray')
-    normalize_spec.mark_spectrum(ISM_dict, ax_ccd, 'gray')
+    normalize_spec.mark_spectrum(ISM_dict, ax_fuv, 'gray', yscale = 50.0)
+    normalize_spec.mark_spectrum(ISM_dict, ax_ccd, 'gray', yscale = 50.0)
 
     line_dict = normalize_spec.apply_redshift(ISM_dict_shifted, 268.0E3)
-    normalize_spec.mark_spectrum(ISM_dict_shifted, ax_fuv, 'gray', offset = 15.0)
-    normalize_spec.mark_spectrum(ISM_dict_shifted, ax_ccd, 'gray', offset = 15.0)
+    normalize_spec.mark_spectrum(ISM_dict_shifted, ax_fuv, 'gray', offset = 15.0, yscale = 50.0)
+    normalize_spec.mark_spectrum(ISM_dict_shifted, ax_ccd, 'gray', offset = 15.0, yscale = 50.0)
 
     line_dict = normalize_spec.apply_redshift(SV_dict, 268.0E3)
-    normalize_spec.mark_spectrum(SV_dict, ax_fuv, 'm')
-    normalize_spec.mark_spectrum(SV_dict, ax_ccd, 'm')
+    normalize_spec.mark_spectrum(SV_dict, ax_fuv, 'm', yscale = 50.0)
+    normalize_spec.mark_spectrum(SV_dict, ax_ccd, 'm', yscale = 50.0)
 
     return ax_fuv, ax_ccd
 
-
-if __name__ == "__main__":
+def make_rhodes_plot():
     fig = pyplot.figure(1)
     ax_fuv = fig.add_subplot(1,2,1)
     ax_ccd = fig.add_subplot(1,2,2)
@@ -320,64 +321,160 @@ if __name__ == "__main__":
     pdb.set_trace()
 
 
+def make_2014_aas_plot():
+    fig = pyplot.figure(1)
+    ax_fuv = fig.add_subplot(1,2,1)
+    ax_ccd = fig.add_subplot(1,2,2)
+    ax_fuv.set_position([0.05, 0.1, 0.35, 0.8])
+    ax_ccd.set_position([0.425, 0.1, 0.55, 0.8])
+    ax_fuv.set_title('FUV Spectra')
+    ax_ccd.set_title('Optical Spectra')
+
+    loc_list = np.arange(14)*0.5 - 0.5
+
+    #H92
+    #O6 - O6.5V
+    fuv = '/Users/bostroem/science/multispec/R136_G140L/star0046_G140L_norm.fits'
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H92_NW6_3936_combined_img_loc526_norm.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H92_NW6_4194_combined_img_loc516_norm.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H92_NW6_4451_combined_img_loc526_norm.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H92_NW6_4706_combined_img_loc524_norm.fits'
+    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, loc_list[0], ax_ccd, ax_fuv, fuv_offset = loc_list[0]*2)
+
+    #H52
+    #O6V
+    fuv = '/Users/bostroem/science/multispec/R136_G140L/star0019_G140L_norm.fits'
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H52_SE5_3936_combined_img_loc514_norm.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H52_SE5_4194_combined_img_loc527_norm.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H52_SE5_4451_combined_img_loc514_norm.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H52_SE5_4706_combined_img_loc511_norm.fits'
+    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, loc_list[1], ax_ccd, ax_fuv, fuv_offset = loc_list[1]*2)
+
+    #H94
+    #O5-O6V
+    fuv = '/Users/bostroem/science/multispec/R136_G140L/star0048_G140L_norm.fits'
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H94_SE6_3936_combined_img_loc525_norm.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H94_SE6_4194_combined_img_loc516_norm.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H94_SE6_4451_combined_img_loc525_norm.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H94_SE6_4706_combined_img_loc522_norm.fits'
+    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, loc_list[2], ax_ccd, ax_fuv, fuv_offset = loc_list[2]*2)
+
+    #H90
+    #O5V
+    fuv = '/Users/bostroem/science/multispec/R136_G140L/star0044_G140L_norm.fits'
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H90_NW3_3936_combined_img_loc534_norm.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H90_NW3_4194_combined_img_loc508_norm.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H90_NW3_4451_combined_img_loc534_norm.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H90_NW3_4706_combined_img_loc532_norm.fits'
+    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, loc_list[3], ax_ccd, ax_fuv, fuv_offset = loc_list[3]*2)
+
+    #H78
+    #O3-O5V
+    fuv = '/Users/bostroem/science/multispec/R136_G140L/star0038_G140L_norm.fits'
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H78_NW2_3936_combined_img_loc539_norm.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H78_NW3_4194_combined_img_loc503_norm.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H78_NW2_4451_combined_img_loc540_norm.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H78_NW2_4706_combined_img_loc538_norm.fits'
+    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, loc_list[4], ax_ccd, ax_fuv, fuv_offset = loc_list[4]*2)
+
+    #H75
+    #O3-4 Vnz
+    fuv = '/Users/bostroem/science/multispec/R136_G140L/star0031_G140L_norm.fits'
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H75_NW8_3936_combined_img_loc531_norm.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H75_NW8_4194_combined_img_loc512_norm.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H75_NW8_4451_combined_img_loc531_norm.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H75_NW8_4706_combined_img_loc529_norm.fits'
+    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, loc_list[5], ax_ccd, ax_fuv, fuv_offset = loc_list[5]*2)
+
+    #H71
+    #O3-4V
+    fuv = '/Users/bostroem/science/multispec/R136_G140L/star0041_G140L_norm.fits'
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H71_SE9_3936_combined_img_loc502_norm.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H71_SE9_4194_combined_img_loc539_norm.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H71_SE9_4451_combined_img_loc502_norm.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H71_SE9_4706_combined_img_loc499_norm.fits'
+    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, loc_list[6], ax_ccd, ax_fuv, fuv_offset = loc_list[6]*2)
+
+    #H68
+    #O3-4V
+    fuv = '/Users/bostroem/science/multispec/R136_G140L/star0042_G140L_norm.fits'
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H68_SE4_3936_combined_img_loc606_norm.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H68_SE4_4194_combined_img_loc435_norm.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H68_SE4_4451_combined_img_loc608_norm.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H68_SE4_4706_combined_img_loc604_norm.fits'
+    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, loc_list[7], ax_ccd, ax_fuv, fuv_offset = loc_list[7]*2)
+
+    #H64
+    #O3-4V
+    fuv = '/Users/bostroem/science/multispec/R136_G140L/star0040_G140L_norm.fits'
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H64_NW7_3936_combined_img_loc481_norm.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H64_NW7_4194_combined_img_loc561_norm.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H64_NW7_4451_combined_img_loc480_norm.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H64_NW7_4706_combined_img_loc479_norm.fits'
+    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, loc_list[8], ax_ccd, ax_fuv, fuv_offset = loc_list[8]*2)
+
+    #H45
+    #O3.5V((f))
+    fuv = '/Users/bostroem/science/multispec/R136_G140L/star0021_G140L_norm.fits'
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H45_SE7_3936_combined_img_loc558_norm.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H45_SE7_4194_combined_img_loc481_norm.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H45_SE7_4451_combined_img_loc559_norm.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H45_SE7_4706_combined_img_loc556_norm.fits'
+    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, loc_list[9], ax_ccd, ax_fuv, fuv_offset = loc_list[9]*2)
+
+
+    #H77
+    #SB2
+    fuv = '/Users/bostroem/science/multispec/R136_G140L/star0039_G140L_norm.fits'
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H77_SE6_3936_combined_img_loc517_norm.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H77_SE6_4194_combined_img_loc523_norm.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H77_SE6_4451_combined_img_loc518_norm.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H77_SE6_4706_combined_img_loc515_norm.fits'
+    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, loc_list[10], ax_ccd, ax_fuv, fuv_offset = loc_list[10]*2)
+
+    #H42    
+    #SB2
+    fuv = '/Users/bostroem/science/multispec/R136_G140L/star0022_G140L_norm.fits'
+    ccd1 = '/Users/bostroem/science/2014_dc_aas/H42_NW8_3936_combined_img_loc544_norm.fits'
+    ccd2 = '/Users/bostroem/science/2014_dc_aas/H42_NW8_4194_combined_img_loc498_norm.fits'
+    ccd3 = '/Users/bostroem/science/2014_dc_aas/H42_NW8_4451_combined_img_loc543_norm.fits'
+    ccd4 = '/Users/bostroem/science/2014_dc_aas/H42_NW8_4706_combined_img_loc542_norm.fits'
+    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, loc_list[11], ax_ccd, ax_fuv, fuv_offset = loc_list[11]*2)
+
+
+    ax_fuv.set_yticks(loc_list*2 - 1.0)
+    ax_ccd.set_yticks(loc_list + 0.05)
+    ax_ccd.set_ylim(0, np.max(loc_list) +1.1)
+    ax_fuv.set_ylim(-1.1, np.max(loc_list)*2+ 1.4)
+    yticklabels = ax_fuv.get_yticklabels()
+    ccd_yticklabels = ax_ccd.get_yticklabels()
+    for i in range(len(ccd_yticklabels)):
+        ccd_yticklabels[i] = ''
+    ax_ccd.set_yticklabels(ccd_yticklabels)
+
+    label_list = ['H92','H52', 'H94',  'H90', 'H78', 'H75', 'H71', 'H68', 'H64', 'H45', 'H77', 'H42']
+    for i in range(len(yticklabels)):
+        yticklabels[i] = ''
+    for i, star_name in enumerate(label_list):
+        yticklabels[i+2] = star_name
+        ccd_yticklabels[i+2] = star_name
+    ax_fuv.set_yticklabels(yticklabels)
+    ax_ccd.minorticks_on()
+    ax_fuv.minorticks_on()
+    ax_fuv.set_xlabel('Wavelength ($\AA$)')
+    ax_ccd.set_xlabel('Wavelength ($\AA$)')
+    ax_fuv.set_ylabel('Relative Intensity')
+    ax_fuv.tick_params(axis = 'y', which = 'minor', left = 'off')
+    ax_ccd.tick_params(axis = 'y', which = 'minor', left = 'off')
+    ax_fuv.tick_params(axis = 'y', which = 'minor', right = 'off')
+    ax_ccd.tick_params(axis = 'y', which = 'minor', right = 'off')
+
+    ax_fuv, ax_ccd = label_spectrum(ax_fuv, ax_ccd)
+    pdb.set_trace()
+    pyplot.savefig('/Users/bostroem/science/2014_dc_aas/')
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    '''
-
-
-    #H62
-    fuv = '/user/bostroem/science/multispec/R136_G140L/star0024_G140L_norm.fits'
-    ccd1 = '/Users/bostroem/dropbox/R136/ccd/H62_3936SE3_3936_loc513_norm.fits.gz'
-    ccd2 = '/Users/bostroem/dropbox/R136/ccd/H62_4194SE3loc533_norm.fits.gz'
-    ccd3 = '/Users/bostroem/dropbox/R136/ccd/H62_4451SE3loc514_norm.fits.gz'
-    ccd4 = '/Users/bostroem/dropbox/R136/ccd/H62_4706SE3loc510_norm.fits.gz'
-    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, 1.0, ax_ccd, ax_fuv)
-
-    #R136a6
-    fuv = '//user/bostroem/science/multispec/R136_G140L/star0004_G140L_norm.fits'
-    ccd1 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_3936_combined_img_loc546_norm.fits'
-    ccd2 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_4194_combined_img_loc494_norm.fits'
-    ccd3 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_4451_combined_img_loc547_norm.fits'
-    ccd4 = '/user/bostroem/science/12465_otfr20121109/ccd/SE3_4706_combined_img_loc544_norm.fits'
-    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, 1.0, ax_ccd, ax_fuv)
-
-    #H36
-    fuv = '/Users/bostroem/dropbox/R136/mama/R136a6_SE1loc378_norm.fits.gz'
-    ccd1 = '/Users/bostroem/dropbox/R136/ccd/R136a6_3936SE1loc506_norm.fits.gz'
-    ccd2 = '/Users/bostroem/dropbox/R136/ccd/R136a6_4194SE1loc535_norm.fits.gz'
-    ccd3 = '/Users/bostroem/dropbox/R136/ccd/R136a6_4451SE1loc507_norm.fits.gz'
-    ccd4 = '/Users/bostroem/dropbox/R136/ccd/R136a6_4706SE1loc504_norm.fits.gz'
-    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, 1.5, ax_ccd, ax_fuv)
-
-    #R136b
-    ccd1 = '/user/bostroem/science/12465_otfr20121109/ccd/SE8_3936_combined_img_loc545_norm.fits'
-    ccd2 = '/user/bostroem/science/12465_otfr20121109/ccd/SE8_4194_combined_img_loc496_norm.fits'
-    ccd3 = '/user/bostroem/science/12465_otfr20121109/ccd/SE8_4451_combined_img_loc546_norm.fits'
-    ccd4 = '/user/bostroem/science/12465_otfr20121109/ccd/SE8_4706_combined_img_loc543_norm.fits'
-    fuv = '/Users/bostroem/dropbox/R136/mama/R136b_SE8loc459_norm.fits.gz'
-    ax_ccd, ax_fuv = plot_spec(ccd1, ccd2, ccd3, ccd4, fuv, 0, ax_ccd, ax_fuv)
-
-    '''
+if __name__ == "__main__":
+    #make_rhodes_plot()
+    make_2014_aas_plot()
