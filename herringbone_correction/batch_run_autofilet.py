@@ -257,7 +257,7 @@ def build_inventory():
     indx = 0
     new_run_indices = np.where(np.array(all_lines) == 'NEW RUN STARTS HERE\n')
     if len(new_run_indices) < 1:
-        new_run_indx == 0
+        new_run_indx = 0
     else:
         new_run_indx = new_run_indices[0][-1]
 
